@@ -22,6 +22,8 @@ class AgentState(TypedDict):
     crud_result: Annotated[Optional[str], "crud_output"]
     final_answer: Annotated[Optional[str], "final_output"]
     next_node: Annotated[Optional[str], "next_node"]
+    agent_messages: Annotated[List[str], "agent_conversation_history"]  # agent 간 대화 기록
+    router_messages: Annotated[List[str], "router_conversation_history"]  # router 간 대화 기록
 
 def slave_one(state: AgentState):
     # Get the latest message from the conversation history

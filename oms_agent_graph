@@ -1,0 +1,16 @@
+// OMS Agent Graph
+digraph {
+	rankdir=LR
+	slave_one [label=slave_one shape=box]
+	slave_two [label=slave_two shape=box]
+	rag_agent [label=rag_agent shape=box]
+	cal_agent [label=cal_agent shape=box]
+	web_agent [label=web_agent shape=box]
+	slave_two -> __end__
+	slave_two -> cal_agent
+	slave_one -> rag_agent
+	slave_one -> cal_agent
+	slave_two -> rag_agent
+	__start__ -> slave_one
+	slave_two -> web_agent
+}

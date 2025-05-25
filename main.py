@@ -4,6 +4,7 @@ from typing import TypedDict, Annotated, List, Optional
 import os
 from dotenv import load_dotenv
 from utils.text_formatter import format_question
+from utils.graph_visualizer import visualize_graph
 
 # Load environment variables from .env file
 load_dotenv()
@@ -138,3 +139,33 @@ def slave_two(state: AgentState):
     print(f"\n[slave_two] 결정: {decision}")
     print("=== [slave_two] 분석 완료 ===")
     return state
+
+def create_graph() -> StateGraph:
+    """Create and return the workflow graph."""
+    # Create a new graph
+    workflow = StateGraph(AgentState)
+    
+    # Add nodes
+    workflow.add_node("slave_one", slave_one)
+    workflow.add_node("slave_two", slave_two)
+    workflow.add_node("rag_agent", lambda x: x)  # Placeholder
+    workflow.add_node("cal_agent", lambda x: x)  # Placeholder
+    workflow.add_node("web_agent", lambda x: x)  # Placeholder
+    
+    # Add edges
+    workflow.add_edge("slave_one", "rag_agent")
+    workflow.add_edge("slave_one", "cal_agent")
+    workflow.add_edge("slave_two", "rag_agent")
+    workflow.add_edge("slave_two", "cal_agent")
+    workflow.add_edge("slave_two", "web_agent")
+    workflow.add_edge("slave_two", END)
+    
+    # Set entry point
+    workflow.set_entry_point("slave_one")
+    
+    return workflow
+
+if __name__ == "__main__":
+    # Create and visualize the graph
+    graph = create_graph()
+    visualize_graph(graph, "oms_agent_graph")

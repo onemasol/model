@@ -1,6 +1,12 @@
-from agent_state import AgentState
+from models.agent_state import AgentState
 from langchain_ollama import ChatOllama
 import os
+
+# Initialize the ChatOllama model
+model = ChatOllama(
+    model="exaone3.5:7.8b",
+    temperature=0.7,
+)
 
 def task_router(state: AgentState): 
     """TaskRouter는 User query를 분석합니다. 만약 RAG, Web Search 등이 필요한 경우 next node: RAGFeasibility 
@@ -30,11 +36,9 @@ def task_router(state: AgentState):
     # Update state based on the decision
     if decision == "RAG":
         state["next_node"] = "rag_agent"
-    elif decision == "CAL":
-        state["next_node"] = "cal_agent"
     else:
-        state["final_answer"] = "[task_router] 죄송합니다. 질문을 이해하지 못했습니다. 문서 검색이나 일정 관리와 관련된 질문을 해주세요."
-        state["next_node"] = "END"
+        state["next_node"] = "cal_agent"
+
 
     return state
 

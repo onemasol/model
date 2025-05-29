@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 from utils.text_formatter import format_question
 from utils.graph_visualizer import visualize_graph
-from agent_state import AgentState
+from models.agent_state import AgentState
 
 # Load environment variables from .env file
 load_dotenv()

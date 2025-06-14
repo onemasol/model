@@ -1,10 +1,11 @@
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, Annotated, List, Optional
+from typing import Annotated, List, Optional
 import os
 from dotenv import load_dotenv
 from utils.text_formatter import format_question
 from utils.graph_visualizer import visualize_graph
+from models.agent_state import AgentState
 
 from langgraph.graph import StateGraph, END
 
@@ -27,6 +28,7 @@ model = ChatOllama(
     model="exaone3.5:7.8b",
     temperature=0.7,
 )
+
 
 class AgentState(TypedDict):
     type: Annotated[str, "input_type"]  # "schedule" or "question"
@@ -94,9 +96,5 @@ if __name__ == "__main__":
     # Create and visualize the graph
     graph = create_graph()
     visualize_graph(graph, "oms_agent_graph")
-
-
-
-
 
 

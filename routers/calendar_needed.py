@@ -16,9 +16,12 @@ def calendar_needed(state: Dict) -> Dict:
     user_query = state["messages"][-1]
     rag_info = state.get("rag_result", "")
     search_info = state.get("search_result", "")
-
+    
     prompt = f"""
-    당신은 스마트 비서입니다. 아래 정보들을 바탕으로 일정 관련 처리가 필요한지 판단해주세요.
+    당신은 사용자의 질문에 대해 검색 및 DB에서 증강 생성을 완료한 RAG Quality Critic, Web search Critic 노드로부터 결과물을 받아, 
+    1. 사용자의 질문을 다시 확인하고 캘린더 CRUD와 같은 일정 관련 처리가 필요한지, 
+    2. 캘린더 관련 일정 처리와 무관한 단순 도메인 지식에 대한 답변만 해주면 되는지를 판단하는
+    캘린더 필요 여부를 판단하는 agent입니다. 아래 정보들을 바탕으로 일정 관련 처리가 필요한지 판단해주세요.   
 
     [사용자 질문]
     \"\"\"{user_query}\"\"\"
@@ -40,9 +43,9 @@ def calendar_needed(state: Dict) -> Dict:
     if "CAL" in response:
         state["next_node"] = "calendar_agent"
     elif "NO_CAL" in response:
-        state["next_node"] = "answer_generator"
+        state["next_node"] = "answer_planner"
     else:
-        state["next_node"] = "answer_generator"
+        state["next_node"] = "answer_planner"
         state["final_answer"] = "[calendar_needed] 판단 실패: 답변 생성기로 이동합니다."
 
     # 라우터 판단 기록

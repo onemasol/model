@@ -1,0 +1,9 @@
+langgraph==0.0.26
+python-dotenv==1.0.1
+langchain-google-genai==0.0.11
+graphviz
+
+langchain-community==0.0.26
+pytest==8.0.0
+langchain-ollama==0.0.1
+

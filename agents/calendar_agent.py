@@ -49,17 +49,8 @@ def parse_calendar_intent(user_query: str) -> Dict:
     try:
         return json.loads(response)
     except:
-        # 기본값을 더 적절하게 설정
-        if any(keyword in user_query for keyword in ["추가", "등록", "만들어", "일정 잡아", "예약"]):
-            return {"intent": "CREATE_EVENT", "type": "event", "operation": "create"}
-        elif any(keyword in user_query for keyword in ["할일", "해야 할", "해야 해", "완료해야"]):
-            return {"intent": "CREATE_TASK", "type": "task", "operation": "create"}
-        elif any(keyword in user_query for keyword in ["삭제", "취소", "지워", "없애"]):
-            return {"intent": "DELETE_EVENT", "type": "event", "operation": "delete"}
-        elif any(keyword in user_query for keyword in ["수정", "변경", "바꿔"]):
-            return {"intent": "UPDATE_EVENT", "type": "event", "operation": "update"}
-        else:
-            return {"intent": "READ_EVENT", "type": "event", "operation": "read"}
+        # LLM 분류 실패 시 기본값
+        return {"intent": "READ_EVENT", "type": "event", "operation": "read"}
 
 def extract_event_data(user_query: str) -> Dict:
     """사용자 질의에서 일정 데이터 추출"""

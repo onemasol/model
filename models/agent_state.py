@@ -1,3 +1,4 @@
+
 from typing import TypedDict, Annotated, List, Optional, Literal
 
 class AgentState(TypedDict):
@@ -10,6 +11,7 @@ class AgentState(TypedDict):
     rag_result: Annotated[Optional[str], "rag_output"]
     search_result: Annotated[Optional[str], "search_output"]
     crud_result: Annotated[Optional[str], "crud_output"]
+
     next_node: Annotated[Optional[str], "next_node"]
     agent_messages: Annotated[List[str], "agent_conversation_history"]  # agent 간 대화 기록
     router_messages: Annotated[List[str], "router_conversation_history"]  # router 간 대화 기록

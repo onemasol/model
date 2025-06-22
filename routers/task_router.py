@@ -9,6 +9,7 @@ model = ChatOllama(
 )
 
 def task_router(state: AgentState): 
+
     """TaskRouter는 User query를 분석합니다. 
     - RAG가 필요한 경우 next node: RAGFeasibility Router
     - 일정 관리 관련인 경우 next node: CalendarAgent  
@@ -23,6 +24,7 @@ def task_router(state: AgentState):
     # 최초 입력이 없을 경우에만 저장
     if state.get("initial_input") is None:
         state["initial_input"] = latest_message
+
 
     # Read system prompt from file
     prompt_path = os.path.join(os.path.dirname(__file__), "..", "prompts", "task_router.txt")
@@ -40,6 +42,7 @@ def task_router(state: AgentState):
     CAL_EVENT
     CAL_TASK
     GENERAL
+
     """
 
     analysis_response = model.invoke(analysis_prompt)
@@ -48,6 +51,7 @@ def task_router(state: AgentState):
     # Update state based on the decision
     if decision == "RAG":
         state["next_node"] = "rag_agent"
+
     elif decision == "CAL_EVENT":
         state["next_node"] = "cal_agent"
         state["schedule_type"] = "event"
@@ -59,6 +63,7 @@ def task_router(state: AgentState):
 
     # 최종 출력 저장
     state["final_output"] = decision
+
 
     return state
 

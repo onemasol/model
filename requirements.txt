@@ -3,6 +3,7 @@ python-dotenv==1.0.1
 langchain-google-genai==0.0.11
 graphviz
 
+
 langchain-community==0.0.26
 pytest==8.0.0
 langchain-ollama==0.3.3
@@ -14,4 +15,5 @@ google-auth-httplib2==0.2.0
 requests==2.31.0
 chardet==5.2.0
 charset-normalizer==3.3.2
+
 

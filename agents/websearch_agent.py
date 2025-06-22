@@ -4,17 +4,19 @@ from typing import Dict
 import os
 from dotenv import load_dotenv
 
-from langchain_community.tools.google_search import GoogleSearchRun
+from langchain_google_community import GoogleSearchRun, GoogleSearchAPIWrapper
 from langchain_ollama import ChatOllama
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
-search_tool = GoogleSearchRun(
-    api_key=GOOGLE_API_KEY,
-    search_engine_id=GOOGLE_CSE_ID,
+search_api = GoogleSearchAPIWrapper(
+    google_api_key=GOOGLE_API_KEY,
+    google_cse_id=GOOGLE_CSE_ID,
 )
+search_tool = GoogleSearchRun(api_wrapper=search_api)
+
 
 model = ChatOllama(
     model=os.getenv("OLLAMA_MODEL", "exaone3.5:7.8b"),

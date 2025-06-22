@@ -1,6 +1,6 @@
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, END
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, TypedDict
 import os
 from dotenv import load_dotenv
 from utils.text_formatter import format_question

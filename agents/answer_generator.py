@@ -4,11 +4,9 @@ from typing import Dict
 from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 import os
-<<<<<<< HEAD
-    # Load environment variables from .env file         
-=======
+import torch
 
->>>>>>> origin/main
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 load_dotenv()
 
 model = ChatOllama(
@@ -24,36 +22,35 @@ def answer_generator(state: Dict) -> Dict:
     prev_answer = state.get("final_answer", "")  # answer_planner/이전 에이전트 답변
 
     prompt = f"""
-    당신은 자영업자를 위한 스마트 어시스턴트입니다.
-    아래 정보와 맥락을 바탕으로, **실무적으로 유익하고 신뢰감 있게** 사용자 질문에 답변해주세요.
+    당신은 '요식업 자영업자'를 도와주는 실무 전문 어시스턴트입니다.  
+세무, 위생, 일정, 민원 대응 등 실생활에서 마주치는 행정·정보적 이슈를 **전문적이되 친절한 상담 톤**으로 도와주세요.
 
-    [사용자 질문]
-    \"\"\"{user_query}\"\"\"
+[사용자 질문]
+\"\"\"{user_query}\"\"\"  
 
-    [문서 검색(RAG) 정보]
-<<<<<<< HEAD
-    \"\"\"{rag_info if rag_info else "관련 문서 검색 정보 없음"}\"\"\"`
-=======
-    \"\"\"{rag_info if rag_info else "관련 문서 검색 정보 없음"}\"\"\"
->>>>>>> origin/main
+[문서 기반 정보 (RAG)]
+\"\"\"{rag_info if rag_info else "관련 문서 검색 정보 없음"}\"\"\"  
 
-    [웹 검색 결과]
-    \"\"\"{web_info if web_info else "관련 웹 검색 결과 없음"}\"\"\"
+[웹 검색 결과]
+\"\"\"{web_info if web_info else "관련 웹 검색 결과 없음"}\"\"\"  
 
-    [일정 정보 또는 처리 결과]
-    \"\"\"{crud_info if crud_info else "일정/처리 결과 없음"}\"\"\"
+[일정 정보 또는 처리 결과]
+\"\"\"{crud_info if crud_info else "일정/처리 결과 없음"}\"\"\"  
 
-    [AnswerPlanner/이전 생성 답변]
-    \"\"\"{prev_answer if prev_answer else "이전 답변 없음"}\"\"\"
+[이전 생성된 응답 또는 초안 (AnswerPlanner)]
+\"\"\"{prev_answer if prev_answer else "이전 답변 없음"}\"\"\"  
 
-    --- 작성 가이드 ---
-    - 위 모든 정보를 종합적으로 고려해, 실질적으로 도움이 되는 답변을 제공하세요.
-    - 내용이 중복되거나 불필요한 반복이 없도록, 필요한 정보만 자연스럽게 녹여서 서술하세요.
-    - 일정 정보나 행동 방법이 있으면, 해당 내용을 명확하게 안내하세요.
-    - 사용자가 추가 질문을 할 수 있도록 유도하거나, FAQ 등으로 자연스럽게 확장될 수 있는 마무리 멘트를 추가해도 좋습니다.
-    - 답변 톤은 너무 딱딱하지 않게, 신뢰감 있고 부드럽게 해주세요. 특히 요식업 자영업자들이 이해할 수 있도록 쉽고, 실무적인 언어로 답변 부탁드려요.
+---
 
-    최종 요약/응답을 완성해서 1회만 출력하세요.
+작성 지침:
+- **일정 정보 또는 처리 방법**이 있다면 가장 먼저 안내하세요.
+- 모든 정보(RAG/웹/이전 답변 등)를 종합하여, 중복 없이 핵심만 정리해 실무적으로 설명해주세요.
+- 필요 시 관련 배경 지식도 간단히 덧붙이되, 복잡한 법령 해석보다는 **실행 중심**으로 답변하세요.
+- 답변 톤은 “동네 세무사/상담사/법무사처럼 도메인 지식에 대한 전문성을 바탕으로, 자영업자들이 이해할 수 있게 친절하게” 유지해주세요.
+- 마지막엔 **사용자의 후속 질문을 유도**하거나 **관련 이슈에 대한 안내**로 마무리하면 좋습니다.
+
+👉 위 정보를 바탕으로, 사용자의 질문에 대해 실질적으로 도움 되는 요약형 응답을 아래에 작성해주세요. (1회 출력만)
+
     """
 
     response = model.invoke(prompt)

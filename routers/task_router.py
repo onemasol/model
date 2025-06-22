@@ -1,7 +1,9 @@
 from models.agent_state import AgentState
 from langchain_ollama import ChatOllama
 import os
+import torch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 # Initialize the ChatOllama model
 model = ChatOllama(
     model="exaone3.5:7.8b",

@@ -3,7 +3,9 @@ import os
 import ast
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
+import torch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 load_dotenv()
 
 model = ChatOllama(

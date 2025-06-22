@@ -84,7 +84,6 @@ def websearch_agent(state: Dict) -> Dict:
 
 🧾 요약 답변:
 
-
         """
         summary = model.invoke(summary_prompt).content.strip()
         state["search_result"] = summary

@@ -3,10 +3,10 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 
-# Add the parent directory to the path to import the calendar_agent_2 module
+# Add the parent directory to the path to import the calendar_agent module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from agents.calendar_agent_2 import calendar_agent_2
+from agents.calendar_agent import calendar_agent
 
 
 class TestCalendarAgent2(unittest.TestCase):
@@ -107,7 +107,7 @@ class TestCalendarAgent2(unittest.TestCase):
                 }
                 
                 try:
-                    result = calendar_agent_2(test_state)
+                    result = calendar_agent(test_state)
                     
                     print(f"결과 타입: {result.get('calendar_type', 'N/A')}")
                     print(f"결과 작업: {result.get('calendar_operation', 'N/A')}")
@@ -145,7 +145,7 @@ class TestCalendarAgent2(unittest.TestCase):
                 
                 print("=" * 50)
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_event_create_operation(self, mock_model):
         """Test event creation operation classification."""
         # Mock the model response
@@ -168,7 +168,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions
         self.assertEqual(result["calendar_type"], "event")
@@ -181,9 +181,9 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Check agent messages
         self.assertEqual(len(result["agent_messages"]), 1)
-        self.assertEqual(result["agent_messages"][0]["agent"], "calendar_agent_2")
+        self.assertEqual(result["agent_messages"][0]["agent"], "calendar_agent")
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_task_create_operation(self, mock_model):
         """Test task creation operation classification."""
         # Mock the model response
@@ -206,7 +206,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions
         self.assertEqual(result["calendar_type"], "task")
@@ -215,7 +215,7 @@ class TestCalendarAgent2(unittest.TestCase):
         self.assertEqual(result["extracted_info"]["title"], "보고서 작성")
         self.assertIn("할일 생성 요청이 분류되었습니다", result["crud_result"])
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_event_read_operation(self, mock_model):
         """Test event read operation classification."""
         # Mock the model response
@@ -238,7 +238,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions
         self.assertEqual(result["calendar_type"], "event")
@@ -246,7 +246,7 @@ class TestCalendarAgent2(unittest.TestCase):
         self.assertEqual(result["next_node"], "CalRUD")
         self.assertIn("일정 조회 요청이 분류되었습니다", result["crud_result"])
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_task_read_operation(self, mock_model):
         """Test task read operation classification."""
         # Mock the model response
@@ -269,7 +269,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions
         self.assertEqual(result["calendar_type"], "task")
@@ -277,7 +277,7 @@ class TestCalendarAgent2(unittest.TestCase):
         self.assertEqual(result["next_node"], "CalRUD")
         self.assertIn("할일 조회 요청이 분류되었습니다", result["crud_result"])
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_event_update_operation(self, mock_model):
         """Test event update operation classification."""
         # Mock the model response
@@ -300,7 +300,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions
         self.assertEqual(result["calendar_type"], "event")
@@ -308,7 +308,7 @@ class TestCalendarAgent2(unittest.TestCase):
         self.assertEqual(result["next_node"], "CalRUD")
         self.assertIn("일정 수정 요청이 분류되었습니다", result["crud_result"])
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_event_delete_operation(self, mock_model):
         """Test event delete operation classification."""
         # Mock the model response
@@ -331,7 +331,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions
         self.assertEqual(result["calendar_type"], "event")
@@ -339,7 +339,7 @@ class TestCalendarAgent2(unittest.TestCase):
         self.assertEqual(result["next_node"], "CalRUD")
         self.assertIn("일정 삭제 요청이 분류되었습니다", result["crud_result"])
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_default_values_when_missing_fields(self, mock_model):
         """Test that default values are set when classification is missing fields."""
         # Mock the model response with missing fields
@@ -356,7 +356,7 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions for default values
         self.assertEqual(result["calendar_type"], "event")
@@ -364,7 +364,7 @@ class TestCalendarAgent2(unittest.TestCase):
         self.assertEqual(result["next_node"], "CalRUD")  # default for read
         self.assertEqual(result["extracted_info"], {})  # default empty dict
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_error_handling_invalid_json(self, mock_model):
         """Test error handling when model returns invalid JSON."""
         # Mock the model response with invalid JSON
@@ -379,15 +379,15 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions for error handling
         self.assertIn("캘린더 에이전트 2 오류", result["crud_result"])
         self.assertEqual(len(result["agent_messages"]), 1)
-        self.assertEqual(result["agent_messages"][0]["agent"], "calendar_agent_2")
+        self.assertEqual(result["agent_messages"][0]["agent"], "calendar_agent")
         self.assertIn("error", result["agent_messages"][0])
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_error_handling_model_exception(self, mock_model):
         """Test error handling when model raises an exception."""
         # Mock the model to raise an exception
@@ -400,13 +400,13 @@ class TestCalendarAgent2(unittest.TestCase):
         }
         
         # Execute the function
-        result = calendar_agent_2(test_state)
+        result = calendar_agent(test_state)
         
         # Assertions for error handling
         self.assertIn("캘린더 에이전트 2 오류", result["crud_result"])
         self.assertIn("Model connection failed", result["crud_result"])
         self.assertEqual(len(result["agent_messages"]), 1)
-        self.assertEqual(result["agent_messages"][0]["agent"], "calendar_agent_2")
+        self.assertEqual(result["agent_messages"][0]["agent"], "calendar_agent")
         self.assertIn("error", result["agent_messages"][0])
     
     def test_state_preservation(self):
@@ -418,7 +418,7 @@ class TestCalendarAgent2(unittest.TestCase):
             "existing_key": "existing_value"
         }
         
-        with patch('agents.calendar_agent_2.model') as mock_model:
+        with patch('agents.calendar_agent.model') as mock_model:
             # Mock the model response
             mock_response = MagicMock()
             mock_response.content = """{
@@ -429,14 +429,14 @@ class TestCalendarAgent2(unittest.TestCase):
             mock_model.invoke.return_value = mock_response
             
             # Execute the function
-            result = calendar_agent_2(test_state)
+            result = calendar_agent(test_state)
             
             # Assertions for state preservation
             self.assertEqual(result["existing_key"], "existing_value")
             self.assertEqual(len(result["agent_messages"]), 2)  # previous + new
             self.assertEqual(result["agent_messages"][0]["previous"], "data")
     
-    @patch('agents.calendar_agent_2.model')
+    @patch('agents.calendar_agent.model')
     def test_real_world_scenarios(self, mock_model):
         """Test various real-world calendar scenarios."""
         test_cases = [
@@ -484,7 +484,7 @@ class TestCalendarAgent2(unittest.TestCase):
                 }
                 
                 # Execute the function
-                result = calendar_agent_2(test_state)
+                result = calendar_agent(test_state)
                 
                 # Assertions
                 self.assertEqual(result["calendar_type"], test_case["expected_type"])
@@ -510,8 +510,8 @@ class TestCalendarAgent2(unittest.TestCase):
             }
             
             try:
-                # calendar_agent_2 함수의 prompt 부분을 직접 확인
-                from agents.calendar_agent_2 import model
+                # calendar_agent 함수의 prompt 부분을 직접 확인
+                from agents.calendar_agent import model
                 
                 prompt = f"""
                 다음 질의를 분석하여 일정/할일 관리 작업을 분류해주세요.

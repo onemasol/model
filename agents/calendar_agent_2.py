@@ -55,8 +55,25 @@ def calendar_agent_2(state: Dict) -> Dict:
         response = model.invoke(prompt)
         content = response.content.strip()
         
-        # 딕셔너리 문자열을 ast.literal_eval로 안전하게 파싱
-        classification = ast.literal_eval(content)
+        # JSON 코드 블록 마커 제거
+        if content.startswith('```json'):
+            content = content[7:]  # '```json' 제거
+        elif content.startswith('```'):
+            content = content[3:]  # '```' 제거
+        
+        if content.endswith('```'):
+            content = content[:-3]  # 끝의 '```' 제거
+        
+        content = content.strip()
+        
+        # JSON으로 파싱 시도
+        import json
+        try:
+            classification = json.loads(content)
+        except json.JSONDecodeError:
+            # JSON 파싱 실패시 Python 딕셔너리로 시도
+            import ast
+            classification = ast.literal_eval(content)
         
         # 분류 결과를 상태에 저장
         state["calendar_classification"] = classification

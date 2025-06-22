@@ -1,11 +1,14 @@
-from typing import Dict, List, Optional, Literal
+from typing import Dict
 import os
+import ast
 import json
-from datetime import datetime, timedelta
+import re
+from datetime import datetime
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 from utils.calendar_api_utils import create_api_request_from_payload
 import torch
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 load_dotenv()
@@ -15,200 +18,168 @@ model = ChatOllama(
     temperature=0.5,
 )
 
-def parse_calendar_intent(user_query: str) -> Dict:
-    """사용자 질의에서 캘린더 작업 의도 파악"""
-    prompt = f"""
-    사용자의 질의를 분석하여 캘린더/할일 관리 작업의 의도를 정확히 파악해주세요.
+def clean_json_response(content: str) -> str:
+    """JSON 응답을 정리하여 파싱 가능한 형태로 만듭니다."""
+    content = content.strip()
     
-    질의: "{user_query}"
+    # JSON 코드 블록 마커 제거
+    if content.startswith('```json'):
+        content = content[7:]
+    elif content.startswith('```'):
+        content = content[3:]
     
-    다음 키워드와 문맥을 고려하여 판단해주세요:
+    if content.endswith('```'):
+        content = content[:-3]
     
-    **일정 관련:**
-    - CREATE_EVENT: "추가해줘", "등록해줘", "만들어줘", "일정 잡아줘", "예약해줘" 등의 표현이 있거나 새로운 일정을 말하는 경우
-    - READ_EVENT: "보여줘", "확인해줘", "조회해줘", "일정이 뭐야", "언제야", "전체 일정", "모든 일정", "일정 목록" 등의 표현이 있거나 기존 일정을 묻는 경우
-    - UPDATE_EVENT: "수정해줘", "변경해줘", "바꿔줘", "다른 시간으로", "다른 날짜로" 등의 표현이 있는 경우
-    - DELETE_EVENT: "삭제해줘", "취소해줘", "지워줘", "없애줘" 등의 표현이 있는 경우
+    content = content.strip()
     
-    **할일 관련:**
-    - CREATE_TASK: "할일 추가", "해야 할 일", "해야 해", "완료해야" 등의 표현이 있거나 새로운 할일을 말하는 경우
-    - READ_TASK: "할일 목록", "해야 할 일 뭐야", "할 일 보여줘", "전체 할일", "모든 할일" 등의 표현이 있는 경우
-    - UPDATE_TASK: "할일 수정", "할일 변경" 등의 표현이 있는 경우
-    - DELETE_TASK: "할일 삭제", "할일 취소" 등의 표현이 있는 경우
+    # 중괄호가 포함된 부분만 추출
+    brace_match = re.search(r'\{.*\}', content, re.DOTALL)
+    if brace_match:
+        content = brace_match.group()
     
-    정확히 분석하여 다음 JSON 형식으로 응답해주세요:
-    {{
-        "intent": "CREATE_EVENT",
-        "type": "event",
-        "operation": "create"
-    }}
-    
-    type은 "event" 또는 "task" 중 하나여야 합니다.
-    operation은 "create", "read", "update", "delete" 중 하나여야 합니다.
-    """
-    
-    response = model.invoke(prompt).content.strip()
-    try:
-        return json.loads(response)
-    except:
-        # LLM 분류 실패 시 기본값
-        return {"intent": "READ_EVENT", "type": "event", "operation": "read"}
+    return content
 
-def extract_event_data(user_query: str) -> Dict:
-    """사용자 질의에서 일정 데이터 추출"""
-    prompt = f"""
-    사용자의 질의에서 일정 정보를 추출해주세요.
-    
-    질의: "{user_query}"
-    
-    다음 정보를 JSON 형태로 추출해주세요:
-    - summary: 일정 제목
-    - location: 장소 (있는 경우)
-    - description: 설명 (있는 경우)
-    - start: 시작 시간 (ISO 8601 형식)
-    - end: 종료 시간 (ISO 8601 형식)
-    
-    예시:
-    {{
-        "summary": "팀 미팅",
-        "location": "회의실 A",
-        "description": "주간 프로젝트 진행상황 논의",
-        "start": {{
-            "dateTime": "2024-01-15T10:00:00",
-            "timeZone": "Asia/Seoul"
-        }},
-        "end": {{
-            "dateTime": "2024-01-15T11:00:00",
-            "timeZone": "Asia/Seoul"
-        }}
-    }}
-    """
-    
-    response = model.invoke(prompt).content.strip()
+def parse_classification_response(content: str) -> Dict:
+    """응답을 안전하게 파싱하여 딕셔너리로 변환합니다."""
     try:
-        return json.loads(response)
-    except:
-        return {"summary": "새 일정", "start": {"dateTime": datetime.now().isoformat()}}
-
-def extract_task_data(user_query: str) -> Dict:
-    """사용자 질의에서 할일 데이터 추출"""
-    prompt = f"""
-    사용자의 질의에서 할일 정보를 추출해주세요.
-    
-    질의: "{user_query}"
-    
-    다음 정보를 JSON 형태로 추출해주세요:
-    - title: 할일 제목
-    - notes: 메모 (있는 경우)
-    - due: 마감일 (ISO 8601 형식, 있는 경우)
-    
-    예시:
-    {{
-        "title": "보고서 작성",
-        "notes": "월간 실적 보고서 작성",
-        "due": "2024-01-20T18:00:00.000Z"
-    }}
-    """
-    
-    response = model.invoke(prompt).content.strip()
-    try:
-        return json.loads(response)
-    except:
-        return {"title": "새 할일"}
-
-def prepare_calendar_payload(intent: Dict, operation: str, type_: str, user_query: str) -> Dict:
-    """캘린더 API 호출을 위한 페이로드 준비"""
-    payload = {
-        "intent": intent.get("intent", ""),
-        "operation": operation,
-        "type": type_,
-        "user_query": user_query
-    }
-    
-    if operation == "create":
-        if type_ == "event":
-            payload["event_data"] = extract_event_data(user_query)
-        elif type_ == "task":
-            payload["task_data"] = extract_task_data(user_query)
-    
-    elif operation == "read":
-        if type_ == "event":
-            # 일정 조회 조건 설정
-            payload["query_params"] = {
-                "time_min": datetime.utcnow().isoformat() + 'Z',
-                "time_max": (datetime.utcnow() + timedelta(days=30)).isoformat() + 'Z',
-                "single_events": True,
-                "order_by": "startTime"
+        # JSON으로 파싱 시도
+        cleaned_content = clean_json_response(content)
+        return json.loads(cleaned_content)
+    except json.JSONDecodeError:
+        try:
+            # Python 딕셔너리로 파싱 시도
+            return ast.literal_eval(content)
+        except (ValueError, SyntaxError):
+            # 파싱 실패시 기본값 반환
+            return {
+                "type": "event",
+                "operation": "read",
+                "extracted_info": {
+                    "title": "",
+                    "dateTime": "",
+                    "date": ""
+                }
             }
-        elif type_ == "task":
-            payload["query_params"] = {}
-    
-    elif operation in ["update", "delete"]:
-        # 수정/삭제를 위해서는 ID가 필요
-        payload["error"] = f"{type_} {operation}을 위해서는 ID가 필요합니다."
-    
-    return payload
 
 def calendar_agent(state: Dict) -> Dict:
-    """캘린더 에이전트 메인 함수"""
+    """
+    캘린더 노드: 사용자 질의를 분석하여 일정/할일 관리 작업을 분류하고 다음 노드를 결정합니다.
+    
+    Args:
+        state: 현재 상태 딕셔너리
+        
+    Returns:
+        state: 업데이트된 상태 딕셔너리
+    """
     user_query = state["messages"][-1]
-    schedule_type = state.get("schedule_type", "event")
+    
+    # 현재 날짜 가져오기
+    current_date = datetime.now()
+    current_date_str = current_date.strftime("%Y-%m-%d")
+    
+    prompt = f"""
+    다음 질의를 분석하여 일정/할일 관리 작업을 분류해주세요.
+    
+    [현재 날짜]
+    {current_date_str}
+    
+    [사용자 질의]
+    "{user_query}"
+    
+    **분류 기준:**
+    1. **타입 (type):**
+       - "event": 특정 시간에 일어나는 일정 (미팅, 약속, 회의, 파티 등)
+       - "task": 완료해야 할 작업 (보고서 작성, 제출, 준비 등)
+    
+    2. **작업 (operation):**
+       - "create": 새로운 일정/할일 추가 ("추가", "등록", "만들어", "해야 해" 등)
+       - "read": 기존 일정/할일 조회 ("보여줘", "확인해줘", "뭐야" 등)
+       - "update": 기존 일정/할일 수정 ("수정", "변경", "바꿔" 등)
+       - "delete": 기존 일정/할일 삭제 ("삭제", "취소", "지워" 등)
+    
+    **날짜/시간 처리 규칙:**
+    - 현재 날짜({current_date_str})를 기준으로 상대적 날짜 계산
+    - 날짜는 YYYY-MM-DD 형식으로 변환 (예: "내일" → {current_date_str} + 1일, "다음주 월요일" → 해당 날짜)
+    - 시간이 있는 경우 dateTime 필드에 RFC3339 형식 사용 (예: "2024-01-15T14:00:00+09:00")
+    - 시간이 없는 경우 date 필드에 YYYY-MM-DD 형식 사용
+    - 시간대는 한국 시간대 (+09:00) 사용
+    - 시간은 24시간 형식으로 변환 (예: "오후 2시" → 14, "오전 9시" → 9)
+    - 분이 없으면 00으로 설정
+    
+    **예시:**
+    - "내일 오후 2시에 팀 미팅 추가해줘" → event, create, dateTime: "2024-01-16T14:00:00+09:00"
+    - "이번 주 일정 보여줘" → event, read, date: "{current_date_str}" (시작일)
+    - "할일 목록에 장보기 추가해줘" → task, create, date: "{current_date_str}" (오늘)
+    - "오늘 할 일 보여줘" → task, read, date: "{current_date_str}"
+    
+    다음 형태로만 응답해주세요 (JSON 형식):
+    {{
+        "type": "event",
+        "operation": "create",
+        "extracted_info": {{
+            "title": "추출된 제목",
+            "dateTime": "2024-01-16T14:00:00+09:00",
+            "date": "2024-01-16"
+        }}
+    }}
+    
+    설명이나 추가 텍스트 없이 JSON 형식으로만 응답해주세요.
+    """
     
     try:
-        # 사용자 의도 파악
-        intent = parse_calendar_intent(user_query)
-        operation = intent.get("operation", "read")
-        type_ = intent.get("type", schedule_type)
+        # LLM 호출
+        response = model.invoke(prompt)
+        content = response.content.strip()
         
-        # 기본 페이로드 준비
-        payload = prepare_calendar_payload(intent, operation, type_, user_query)
+        # 응답 파싱
+        classification = parse_classification_response(content)
         
-        # 사용 가능한 캘린더/할일 목록 정보 (실제로는 외부에서 제공받아야 함)
-        available_calendars = state.get("available_calendars", [])
-        available_task_lists = state.get("available_task_lists", [])
+        # 상태 업데이트
+        state.update({
+            "calendar_classification": classification,
+            "calendar_type": classification.get("type", "event"),
+            "calendar_operation": classification.get("operation", "read"),
+            "extracted_info": classification.get("extracted_info", {})
+        })
         
-        # API 요청 본문 생성
-        api_request = create_api_request_from_payload(
-            payload, 
-            available_calendars, 
-            available_task_lists
-        )
-        
-        # 페이로드와 API 요청 본문을 상태에 저장
-        state["calendar_payload"] = payload
-        state["calendar_api_request"] = api_request
-        
-        # 작업 요약 생성
+        # 다음 노드 결정
+        operation = classification.get("operation", "read")
         if operation == "create":
-            summary = f"{type_} 생성 요청이 준비되었습니다."
-        elif operation == "read":
-            summary = f"{type_} 조회 요청이 준비되었습니다."
-        elif operation == "update":
-            summary = f"{type_} 수정 요청이 준비되었습니다."
-        elif operation == "delete":
-            summary = f"{type_} 삭제 요청이 준비되었습니다."
-        else:
-            summary = f"{type_} 작업 요청이 준비되었습니다."
+            state["next_node"] = "CalC"
+        else:  # read, update, delete
+            state["next_node"] = "CalRUD"
         
+        # 결과 요약 생성
+        type_name = "일정" if classification.get("type") == "event" else "할일"
+        operation_name = {
+            "create": "생성",
+            "read": "조회", 
+            "update": "수정",
+            "delete": "삭제"
+        }.get(classification.get("operation", "read"), "조회")
+        
+        summary = f"{type_name} {operation_name} 요청이 분류되었습니다. → {state['next_node']} 노드로 라우팅"
         state["crud_result"] = summary
         
         # 로그 기록
         state.setdefault("agent_messages", []).append({
             "agent": "calendar_agent",
-            "intent": intent,
-            "operation": operation,
-            "type": type_,
-            "payload": payload,
-            "api_request": api_request,
-            "summary": summary
+            "classification": classification,
+            "summary": summary,
+            "next_node": state["next_node"]
         })
         
     except Exception as e:
-        error_msg = f"캘린더 에이전트 오류: {str(e)}"
+        # 에러 처리
+        error_msg = f"캘린더 노드 오류: {str(e)}"
         state["crud_result"] = error_msg
+        state["next_node"] = "answer_generator"  # 에러시 답변 생성기로
+        
         state.setdefault("agent_messages", []).append({
             "agent": "calendar_agent",
-            "error": str(e)
+            "error": str(e),
+            "next_node": "answer_generator"
         })
     
     return state

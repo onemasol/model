@@ -1,12 +1,9 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
 *.so
 
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -21,11 +18,13 @@ sdist/
 var/
 wheels/
 share/python-wheels/
+
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
+<<<<<<< HEAD
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -74,6 +73,42 @@ docs/_build/
 # PyBuilder
 .pybuilder/
 target/
+=======
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Google API Credentials
+credentials.json
+token.pickle
+token.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+.coverage
+htmlcov/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -138,9 +173,14 @@ venv.bak/
 # mkdocs documentation
 /site
 
+# pyenv
+.python-version
+
+
 # mypy
 .mypy_cache/
 .dmypy.json
+<<<<<<< HEAD
 dmypy.json
 
 # Pyre type checker
@@ -158,3 +198,6 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+dmypy.json 
+

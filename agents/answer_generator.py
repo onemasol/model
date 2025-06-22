@@ -4,7 +4,11 @@ from typing import Dict
 from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 import os
+<<<<<<< HEAD
     # Load environment variables from .env file         
+=======
+
+>>>>>>> origin/main
 load_dotenv()
 
 model = ChatOllama(
@@ -27,7 +31,11 @@ def answer_generator(state: Dict) -> Dict:
     \"\"\"{user_query}\"\"\"
 
     [문서 검색(RAG) 정보]
+<<<<<<< HEAD
     \"\"\"{rag_info if rag_info else "관련 문서 검색 정보 없음"}\"\"\"`
+=======
+    \"\"\"{rag_info if rag_info else "관련 문서 검색 정보 없음"}\"\"\"
+>>>>>>> origin/main
 
     [웹 검색 결과]
     \"\"\"{web_info if web_info else "관련 웹 검색 결과 없음"}\"\"\"

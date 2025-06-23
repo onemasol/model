@@ -5,10 +5,10 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from agents.calendar_agent import calendar_agent
-from agents.calrud import calrud 
+from agents.calselector import calselector 
 
 def test_calendar_workflow():
-    """calendar_agent에서 calrud로 이어지는 워크플로우를 테스트합니다."""
+    """calendar_agent에서 calselector로 이어지는 워크플로우를 테스트합니다."""
     
     # 테스트 케이스들
     test_cases = [
@@ -31,28 +31,28 @@ def test_calendar_workflow():
             "input": "이번 주 일정 보여줘",
             "expected_type": "event",
             "expected_operation": "read",
-            "expected_node": "CalRUD"
+            "expected_node": "calselector"
         },
         {
             "description": "할일 조회 (오늘 할 일)",
             "input": "오늘 할 일 보여줘",
             "expected_type": "task",
             "expected_operation": "read",
-            "expected_node": "CalRUD"
+            "expected_node": "calselector"
         },
         {
             "description": "일정 수정 (내일 미팅 시간 변경)",
             "input": "내일 오후 3시로 미팅 시간 변경해줘",
             "expected_type": "event",
             "expected_operation": "update",
-            "expected_node": "CalRUD"
+            "expected_node": "calselector"
         },
         {
             "description": "일정 삭제 (내일 미팅 취소)",
             "input": "내일 미팅 취소해줘",
             "expected_type": "event",
             "expected_operation": "delete",
-            "expected_node": "CalRUD"
+            "expected_node": "calselector"
         },
         {
             "description": "복잡한 일정 생성 (다음주 월요일 오전 10시 회의)",
@@ -64,7 +64,7 @@ def test_calendar_workflow():
     ]
     
     print("=" * 80)
-    print("📅 Calendar Agent → CalRUD Workflow 테스트")
+    print("📅 Calendar Agent → calselector Workflow 테스트")
     print("=" * 80)
     
     for i, test_case in enumerate(test_cases, 1):
@@ -161,13 +161,48 @@ def test_calendar_workflow():
                     else:
                         print("❌ 페이로드: Event 구조에 문제가 있음")
             
-            elif actual_node == "CalRUD":
-                print("\n🔧 Step 2: CalRUD 실행")
-                next_node_result = calrud(calendar_result.copy())
+            elif actual_node == "calselector":
+                print("\n🔧 calselector 실행...")
+                next_node_result = calselector(calendar_result.copy())
                 
-                print(f"✅ 라우팅 결과:")
+                print(f"✅ calselector 결과:")
                 print(f"   - 다음 노드: {next_node_result.get('next_node', 'N/A')}")
-                print(f"   - CRUD 결과: {next_node_result.get('crud_result', 'N/A')}")
+                print(f"   - API 요청 수: {len(next_node_result.get('api_requests', []))}")
+                
+                # API 요청 상세 정보 출력
+                api_requests = next_node_result.get('api_requests', [])
+                for i, req in enumerate(api_requests, 1):
+                    print(f"\n📡 API 요청 {i} 상세 정보:")
+                    print(f"   - API 타입: {req.get('api_type', 'N/A')}")
+                    print(f"   - HTTP 메소드: {req.get('method', 'N/A')}")
+                    print(f"   - 엔드포인트: {req.get('endpoint', 'N/A')}")
+                    print(f"   - 작업 유형: {req.get('operation', 'N/A')}")
+                    print(f"   - 이벤트 타입: {req.get('event_type', 'N/A')}")
+                    
+                    # 파라미터 상세 출력
+                    params = req.get('params', {})
+                    if params:
+                        print(f"   - 쿼리 파라미터:")
+                        for key, value in params.items():
+                            print(f"     • {key}: {value}")
+                    else:
+                        print(f"   - 쿼리 파라미터: 없음")
+                    
+                    # 헤더 정보 출력
+                    headers = req.get('headers', {})
+                    if headers:
+                        print(f"   - 요청 헤더:")
+                        for key, value in headers.items():
+                            if key == 'Authorization':
+                                print(f"     • {key}: Bearer [토큰 숨김]")
+                            else:
+                                print(f"     • {key}: {value}")
+                    else:
+                        print(f"   - 요청 헤더: 없음")
+                    
+                    # 전체 요청 구조 출력 (JSON)
+                    print(f"   - 전체 요청 구조:")
+                    print(json.dumps(req, ensure_ascii=False, indent=4))
 
                 print(f"\n📊 Final State (RUD):")
                 print(f"   - title: {next_node_result.get('title', 'N/A')}")
@@ -177,13 +212,25 @@ def test_calendar_workflow():
                 print(f"   - timezone: {next_node_result.get('timezone', 'N/A')}")
                 print(f"   - event_type: {next_node_result.get('event_type', 'N/A')}")
                 print(f"   - operation_type: {next_node_result.get('operation_type', 'N/A')}")
+                print(f"   - schedule_type: {next_node_result.get('schedule_type', 'N/A')}")
                 print(f"   - query_info: {json.dumps(next_node_result.get('query_info', {}), ensure_ascii=False, indent=2)}")
 
-                # 라우팅 유효성 검사
-                if next_node_result.get('next_node') == "answer_planner":
-                    print("✅ 라우팅: 올바른 노드로 전달됨")
+                # calselector 유효성 검사
+                if next_node_result.get('next_node') == "calendar_api_utils":
+                    print("✅ 라우팅: calendar_api_utils로 올바르게 전달됨")
                 else:
                     print("❌ 라우팅: 잘못된 노드로 전달됨")
+                
+                # API 요청 유효성 검사
+                if api_requests:
+                    print("✅ API 요청: 정상적으로 생성됨")
+                    for req in api_requests:
+                        if req.get('api_type') in ['google_calendar', 'google_tasks']:
+                            print(f"✅ API 타입: {req.get('api_type')} - 유효함")
+                        else:
+                            print(f"❌ API 타입: {req.get('api_type')} - 유효하지 않음")
+                else:
+                    print("❌ API 요청: 생성되지 않음")
             
             else:
                 print(f"\n🤷‍♀️ Step 2: 알 수 없는 다음 노드 ({actual_node})")
@@ -249,11 +296,20 @@ def test_specific_scenario():
             print("Calendar Agent 결과 (Event Payload):")
             print(json.dumps(final_result.get('event_payload', {}), ensure_ascii=False, indent=2))
 
-        elif next_node == "CalRUD":
-            print("\n🔧 CalRUD 실행...")
-            final_result = calrud(calendar_result.copy())
-            print("CalRUD 결과 (DB Filter):")
-            print(json.dumps(final_result.get('db_filter', {}), ensure_ascii=False, indent=2))
+        elif next_node == "calselector":
+            print("\n🔧 calselector 실행...")
+            final_result = calselector(calendar_result.copy())
+            print("calselector 결과 (API Requests):")
+            api_requests = final_result.get('api_requests', [])
+            for i, req in enumerate(api_requests, 1):
+                print(f"\n📡 API 요청 {i}:")
+                print(f"   API 타입: {req.get('api_type')}")
+                print(f"   엔드포인트: {req.get('endpoint')}")
+                print(f"   메소드: {req.get('method')}")
+                print(f"   파라미터: {json.dumps(req.get('params', {}), ensure_ascii=False, indent=2)}")
+                print(f"   전체 요청:")
+                print(json.dumps(req, ensure_ascii=False, indent=2))
+                print()
         else:
             final_result = calendar_result
 

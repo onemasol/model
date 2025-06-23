@@ -239,7 +239,8 @@ def calendar_agent(state: Dict) -> Dict:
                 "end_at": classification.get("end_at", ""),
                 "due_at": None,
                 "timezone": timezone,
-                "event_type": event_type
+                "event_type": event_type,
+                "schedule_type": "event"
             })
         else:
             # task: due_at 사용, start_at, end_at은 null
@@ -252,7 +253,8 @@ def calendar_agent(state: Dict) -> Dict:
                 "end_at": None,
                 "due_at": classification.get("end_at", ""),  # task의 경우 end_at을 due_at으로 사용
                 "timezone": timezone,
-                "event_type": event_type
+                "event_type": event_type,
+                "schedule_type": "task"
             })
         
         # 작업에 따른 처리
@@ -273,9 +275,9 @@ def calendar_agent(state: Dict) -> Dict:
             state["next_node"] = "answer_planner"
             state["crud_result"] = f"이벤트 페이로드 생성 완료: {event_payload.get('title', 'N/A')}"
         else:
-            # read, update, delete 작업: CalRUD로 라우팅
-            state["next_node"] = "CalRUD"
-            state["crud_result"] = f"CRUD 작업 요청이 분류되었습니다. → CalRUD 노드로 라우팅"
+            # read, update, delete 작업: calselector로 라우팅
+            state["next_node"] = "calselector"
+            state["crud_result"] = f"CRUD 작업 요청이 분류되었습니다. → calselector 노드로 라우팅"
             
             # RUD 작업 정보를 state에 추가
             state["operation_type"] = operation

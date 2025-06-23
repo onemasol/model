@@ -16,11 +16,12 @@ from agents.websearch_agent import websearch_agent
 from agents.answer_generator import answer_generator
 from agents.answer_planner import answer_planner
 
-from routers.rag_feasibility_router import rag_feasibility_router
+#from routers.rag_feasibility_router import rag_feasibility_router
 from routers.calendar_needed import calendar_needed
 from routers.rag_quality_critic import rag_quality_critic
 from routers.websearch_critic import websearch_critic
 from routers.task_router import task_router
+from routers.query_refiner import query_refiner
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,7 +58,8 @@ def create_graph() -> StateGraph:
     workflow.add_node("answer_planner", answer_planner) 
 
     ## Routers
-    workflow.add_node("rag_feasibility_router", rag_feasibility_router)
+    #workflow.add_node("rag_feasibility_router", rag_feasibility_router)
+    workflow.add_node("query_refiner", query_refiner)
     workflow.add_node("calendar_needed", calendar_needed)  
     workflow.add_node("rag_quality_critic", rag_quality_critic)
     workflow.add_node("websearch_critic", websearch_critic)
@@ -71,7 +73,8 @@ def create_graph() -> StateGraph:
     #무관 더미
     workflow.add_edge("task_router", "answer_planner")
     # RAG 흐름
-    workflow.add_edge("task_router", "rag_retriever") # RAG 가능한 경우 RAG 리트리버로 이동
+    workflow.add_edge("task_router", "query_refiner") # RAG 가능한 경우 RAG 리트리버로 이동
+    workflow.add_edge("query_refiner", "rag_retriever") # RAG 리트리버로 이동
     workflow.add_edge("rag_retriever", "rag_quality_critic") # RAG 리트리버가 작업을 완료한 후 품질 비평으로 이동
     workflow.add_edge("rag_quality_critic", "rag_retriever") # 불만족스러운 경우 역전파(qa 후 없애도됨)
     workflow.add_edge("rag_quality_critic", "websearch_agent") # 웹서치가 필요한 경우 웹서치

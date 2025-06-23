@@ -1,4 +1,6 @@
-from typing import TypedDict, Annotated, List, Optional, Literal, Dict, Any
+import sys
+import os
+sys.path.append(os.path.abspath(".")) 
 
 from typing import TypedDict, Annotated, List, Optional, Literal, Dict, Any
 
@@ -24,3 +26,11 @@ class AgentState(TypedDict):
     due_at: Annotated[Optional[str], "마감 시간 (ISO 형식, task용)"]
     timezone: Annotated[Optional[str], "시간대"]
     event_type: Annotated[Optional[str], "이벤트 타입 (event/task)"]
+
+    calendar_classification: Annotated[Optional[dict], "캘린더 분류 응답"]
+    calendar_operation: Annotated[Optional[str], "캘린더 작업 타입 (create, read 등)"]
+    calendar_type: Annotated[Optional[str], "event / task"]
+    event_payload: Annotated[Optional[dict], "캘린더 이벤트용 payload"]
+    crud_result: Annotated[Optional[str], "CRUD 결과 메시지"]
+    operation_type: Annotated[Optional[str], "CalRUD용 작업 타입"]
+    query_info: Annotated[Optional[dict], "조회용 쿼리 정보"]

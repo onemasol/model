@@ -52,10 +52,10 @@ def task_router(state: AgentState):
 
     # Update state based on the decision
     if decision == "RAG":
-        state["next_node"] = "rag_retriever"
+        state["next_node"] = "query_refiner"
 
     elif decision == "CAL_EVENT":
-        state["next_node"] = "cal_agent"
+        state["next_node"] = "calendar_agent"
         state["schedule_type"] = "event"
     elif decision == "CAL_TASK":
         state["next_node"] = "calendar_agent"

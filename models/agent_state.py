@@ -24,3 +24,6 @@ class AgentState(TypedDict):
     due_at: Annotated[Optional[str], "마감 시간 (ISO 형식, task용)"]
     timezone: Annotated[Optional[str], "시간대"]
     event_type: Annotated[Optional[str], "이벤트 타입 (event/task)"]
+    
+    ### RUD 작업을 위한 필드
+    rud_candidate_ids: Annotated[Optional[List[str]], "RUD를 위한 유사도 기준 Top3 ID 리스트"]

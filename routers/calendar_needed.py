@@ -4,7 +4,9 @@ from typing import Dict
 from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 import os
+import torch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 load_dotenv()
 
 model = ChatOllama(

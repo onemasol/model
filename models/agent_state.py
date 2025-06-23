@@ -1,5 +1,7 @@
 from typing import TypedDict, Annotated, List, Optional, Literal, Dict, Any
 
+from typing import TypedDict, Annotated, List, Optional, Literal, Dict, Any
+
 class AgentState(TypedDict):
     ### 유저 인풋과 모델 아웃풋 스테이트에 추가하기
     type: Annotated[str, "input_type"]  # "schedule" or "question"

@@ -67,6 +67,8 @@ def calselector(state: Dict) -> Dict:
         
         # 실제 API 호출 및 응답 처리
         api_responses = []
+        rud_candidate_ids = []  # RUD를 위한 유사도 기준 Top3 ID 리스트
+        
         for req in api_requests:
             try:
                 print(f"=== CalSelector: {req['api_type']} API 호출 중... ===")
@@ -100,9 +102,36 @@ def calselector(state: Dict) -> Dict:
                                 },
                                 "primary": True,
                                 "deleted": False
+                            },
+                            {
+                                "kind": "calendar#calendarListEntry",
+                                "etag": "\"mock_etag\"",
+                                "id": "work_calendar",
+                                "summary": "업무 캘린더",
+                                "description": "업무 관련 일정",
+                                "timeZone": "Asia/Seoul",
+                                "accessRole": "owner",
+                                "primary": False,
+                                "deleted": False
+                            },
+                            {
+                                "kind": "calendar#calendarListEntry",
+                                "etag": "\"mock_etag\"",
+                                "id": "personal_calendar",
+                                "summary": "개인 캘린더",
+                                "description": "개인 일정",
+                                "timeZone": "Asia/Seoul",
+                                "accessRole": "owner",
+                                "primary": False,
+                                "deleted": False
                             }
                         ]
                     }
+                    
+                    # 캘린더 ID들을 Top3로 저장 (유사도 기준 시뮬레이션)
+                    calendar_ids = [item['id'] for item in mock_response.get('items', [])]
+                    rud_candidate_ids.extend(calendar_ids[:3])  # Top3 캘린더 ID
+                    
                 else:  # google_tasks
                     # Google Tasks API 응답 시뮬레이션
                     mock_response = {
@@ -111,17 +140,43 @@ def calselector(state: Dict) -> Dict:
                         "items": [
                             {
                                 "kind": "tasks#task",
-                                "id": "mock_task_id",
+                                "id": "task_001",
                                 "etag": "\"mock_etag\"",
-                                "title": "오늘 할 일 예시",
+                                "title": "오늘 할 일 예시 1",
                                 "updated": "2024-01-15T10:00:00.000Z",
-                                "selfLink": "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks/mock_task_id",
+                                "selfLink": "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks/task_001",
                                 "position": "00000000000000000000",
+                                "status": "needsAction",
+                                "due": query_info.get("due_at", "2024-01-15T23:59:59+09:00")
+                            },
+                            {
+                                "kind": "tasks#task",
+                                "id": "task_002",
+                                "etag": "\"mock_etag\"",
+                                "title": "오늘 할 일 예시 2",
+                                "updated": "2024-01-15T11:00:00.000Z",
+                                "selfLink": "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks/task_002",
+                                "position": "00000000000000000001",
+                                "status": "needsAction",
+                                "due": query_info.get("due_at", "2024-01-15T23:59:59+09:00")
+                            },
+                            {
+                                "kind": "tasks#task",
+                                "id": "task_003",
+                                "etag": "\"mock_etag\"",
+                                "title": "오늘 할 일 예시 3",
+                                "updated": "2024-01-15T12:00:00.000Z",
+                                "selfLink": "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks/task_003",
+                                "position": "00000000000000000002",
                                 "status": "needsAction",
                                 "due": query_info.get("due_at", "2024-01-15T23:59:59+09:00")
                             }
                         ]
                     }
+                    
+                    # 태스크 ID들을 Top3로 저장 (유사도 기준 시뮬레이션)
+                    task_ids = [item['id'] for item in mock_response.get('items', [])]
+                    rud_candidate_ids.extend(task_ids[:3])  # Top3 태스크 ID
                 
                 api_responses.append({
                     'api_type': req['api_type'],
@@ -154,6 +209,7 @@ def calselector(state: Dict) -> Dict:
         # state 업데이트
         state["api_requests"] = api_requests
         state["api_responses"] = api_responses
+        state["rud_candidate_ids"] = rud_candidate_ids  # RUD를 위한 유사도 기준 Top3 ID 리스트
         state["next_node"] = "answer_generator"  # 응답 처리 후 답변 생성기로
         
         # 결과 요약 생성

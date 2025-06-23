@@ -56,7 +56,7 @@ def answer_generator(state: Dict) -> Dict:
     response = model.invoke(prompt)
     final_response = response.content.strip()
 
-    state["final_answer"] = final_response
+    state["final_output"] = final_response
     state.setdefault("agent_messages", []).append({
         "agent": "answer_generator",
         "input_snapshot": {

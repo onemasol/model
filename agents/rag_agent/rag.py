@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from langchain_community.vectorstores import MongoDBAtlasVectorSearch   # <- Deprecation 경고 반영
+from langchain_mongodb import MongoDBAtlasVectorSearch  # <- Deprecation 경고 반영
 from .embedding import KoSBERTEmbeddings 
 
 class RAGSystem:

@@ -106,6 +106,9 @@ def websearch_agent(state: Dict) -> Dict:
         # 6. 검색 쿼리 보강 정보는 한 번 사용 후 삭제 (다음에 또 검색시 혼동 방지)
         state.pop("websearch_query", None)
 
+        # 7. websearch_critic으로 라우팅
+        state["next_node"] = "websearch_critic"
+
     except Exception as e:
         state["search_result"] = f"[GoogleSearch Error] {e}"
         state.setdefault("agent_messages", []).append({
@@ -113,5 +116,8 @@ def websearch_agent(state: Dict) -> Dict:
             "query_used": search_query,
             "error": str(e)
         })
+        
+        # 에러가 발생해도 websearch_critic으로 라우팅
+        state["next_node"] = "websearch_critic"
 
     return state

@@ -13,7 +13,7 @@ def rag_retriever(state: dict) -> dict:
     1. RAG 문서 검색 → 문서 기반 답변 생성
     2. 결과를 state["rag_result"], state["rag_docs"]에 저장
     3. agent_messages 로그 기록
-    4. next_node는 지정하지 않음 (분기는 라우터에서)
+    4. next_node는 rag_quality_critic로 설정
     """
 
     user_query = state["messages"][-1]
@@ -41,5 +41,7 @@ def rag_retriever(state: dict) -> dict:
         "docs_snippet": state["rag_docs"][:300] if "rag_docs" in state else ""
     })
 
-    # 4. 다음 분기는 외부 라우터(critic 등)에서 결정
+    # 4. rag_quality_critic로 라우팅
+    state["next_node"] = "rag_quality_critic"
+    
     return state

@@ -3,7 +3,7 @@ from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 
 class LLMSystem:
-    def __init__(self, model_name="llama3", temperature=0.5):
+    def __init__(self, model_name="exaone3.5:7.8b", temperature=0.5):
         """
         LLM 시스템을 초기화합니다.
         

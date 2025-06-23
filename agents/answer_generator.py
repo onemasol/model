@@ -6,7 +6,33 @@ from dotenv import load_dotenv
 import os
 import torch
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+# NVIDIA GPU 최적화 설정
+def setup_optimal_device():
+    """NVIDIA GPU 환경에 최적화된 device 설정"""
+    if torch.cuda.is_available():
+        # CUDA 환경 변수 설정
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0'  # 첫 번째 GPU 사용
+        os.environ['CUDA_LAUNCH_BLOCKING'] = '1'  # 디버깅을 위한 동기 실행
+        
+        # GPU 메모리 최적화 설정
+        torch.backends.cudnn.benchmark = True  # cuDNN 최적화
+        torch.backends.cudnn.deterministic = False  # 성능 향상을 위해 비결정적
+        
+        device = torch.device("cuda:0")
+        
+        # GPU 메모리 캐시 정리
+        torch.cuda.empty_cache()
+        
+        print(f"🚀 GPU 사용: {torch.cuda.get_device_name(0)}")
+        print(f"📊 GPU 메모리: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f}GB")
+        
+    else:
+        device = torch.device("cpu")
+        print("⚠️  GPU 사용 불가능: CPU 사용")
+    
+    return device
+
+device = setup_optimal_device()
 load_dotenv()
 
 model = ChatOllama(

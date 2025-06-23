@@ -9,6 +9,7 @@ from langchain_google_community import GoogleSearchRun, GoogleSearchAPIWrapper
 
 from langchain_ollama import ChatOllama
 import torch
+import requests
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 
@@ -17,17 +18,21 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
 
 
-search_api = GoogleSearchAPIWrapper(
-    google_api_key=GOOGLE_API_KEY,
-    google_cse_id=GOOGLE_CSE_ID,
-)
-search_tool = GoogleSearchRun(api_wrapper=search_api)
-
-
 model = ChatOllama(
     model=os.getenv("OLLAMA_MODEL", "exaone3.5:7.8b"),
     temperature=0.5,
 )
+
+def google_custom_search(query):
+    url = (
+        f"https://customsearch.googleapis.com/customsearch/v1"
+        f"?key={GOOGLE_API_KEY}&cx={GOOGLE_CSE_ID}&q={query}"
+    )
+    resp = requests.get(url)
+    if resp.status_code != 200:
+        raise Exception(f"Google Search API error: {resp.text}")
+    data = resp.json()
+    return [item["snippet"] for item in data.get("items", [])]
 
 def refine_query_for_search(user_query: str, model) -> str:
     prompt = f"""
@@ -54,11 +59,12 @@ def websearch_agent(state: Dict) -> Dict:
         search_query = refine_query_for_search(user_query, model)
 
     try:
-        # 3. 구글 API로 검색
-        results = search_tool.run(search_query)
+        # 1. 구글 API로 검색 (직접 호출)
+        results_list = google_custom_search(search_query)
+        results = "\n".join(results_list)
         
         # 4. 검색 결과 요약
-        summary_prompt = f"""
+        summary_prompt = f"""   
 당신은 요식업 자영업자의 질문에 대해, 구글 웹 검색 결과를 바탕으로 신뢰도 높은 요약 답변을 작성하는 전문가입니다.
 
 [사용자 질문]

@@ -2,7 +2,7 @@
 
 from typing import Dict
 from langchain_ollama import ChatOllama
-from main import AgentState, model  # 모델은 main.py에서 공유
+from shared import AgentState, model 
 import torch
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 

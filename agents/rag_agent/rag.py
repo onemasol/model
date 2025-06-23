@@ -1,6 +1,6 @@
 from pymongo import MongoClient
-from langchain.vectorstores import MongoDBAtlasVectorSearch
-from embedding import KoSBERTEmbeddings
+from langchain_community.vectorstores import MongoDBAtlasVectorSearch   # <- Deprecation 경고 반영
+from .embedding import KoSBERTEmbeddings 
 
 class RAGSystem:
     def __init__(self):
@@ -39,7 +39,7 @@ class RAGSystem:
         Returns:
             list: 관련 문서 리스트
         """
-        relevant_docs = self.retriever.get_relevant_documents(query)
+        relevant_docs = self.retriever.invoke(query)
         return relevant_docs
     
     def close_connection(self):

@@ -1,7 +1,9 @@
 from models.agent_state import AgentState
 from langchain_ollama import ChatOllama
 import os
+import torch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 # Initialize the ChatOllama model
 model = ChatOllama(
     model="exaone3.5:7.8b",
@@ -50,16 +52,16 @@ def task_router(state: AgentState):
 
     # Update state based on the decision
     if decision == "RAG":
-        state["next_node"] = "rag_agent"
+        state["next_node"] = "rag_retriever"
 
     elif decision == "CAL_EVENT":
         state["next_node"] = "cal_agent"
         state["schedule_type"] = "event"
     elif decision == "CAL_TASK":
-        state["next_node"] = "cal_agent"
+        state["next_node"] = "calendar_agent"
         state["schedule_type"] = "task"
     else:  # GENERAL 또는 기타 경우
-        state["next_node"] = "general_agent"
+        state["next_node"] = "answer_planner"
 
     # 최종 출력 저장
     state["final_output"] = decision

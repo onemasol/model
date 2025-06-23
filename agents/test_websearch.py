@@ -3,7 +3,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from agents.websearch_agent import websearch_agent
+import torch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 def run_test():
     while True:
         user_query = input("\n검색할 질문을 입력하세요(종료는 엔터): ").strip()

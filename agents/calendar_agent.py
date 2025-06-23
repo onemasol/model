@@ -8,6 +8,11 @@ import uuid
 from dotenv import load_dotenv
 from langchain_ollama import ChatOllama
 
+from utils.calendar_api_utils import create_api_request_from_payload
+import torch
+
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 load_dotenv()
 
 model = ChatOllama(

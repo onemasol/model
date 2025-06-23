@@ -1,6 +1,6 @@
 from langchain_ollama import ChatOllama
 from langgraph.graph import StateGraph, END
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, TypedDict
 import os
 from dotenv import load_dotenv
 from utils.text_formatter import format_question
@@ -8,12 +8,13 @@ from utils.graph_visualizer import visualize_graph
 from models.agent_state import AgentState
 
 from langgraph.graph import StateGraph, END
-
+from shared import AgentState, model
 
 from agents.rag_retriever import rag_retriever
 from agents.calendar_agent import calendar_agent
 from agents.websearch_agent import websearch_agent
 from agents.answer_generator import answer_generator
+from agents.answer_planner import answer_planner
 
 from routers.rag_feasibility_router import rag_feasibility_router
 from routers.calendar_needed import calendar_needed
@@ -53,6 +54,8 @@ def create_graph() -> StateGraph:
     workflow.add_node("calendar_agent", calendar_agent)
     workflow.add_node("websearch_agent", websearch_agent)
     workflow.add_node("answer_generator", answer_generator)
+    workflow.add_node("answer_planner", answer_planner) 
+
     ## Routers
     workflow.add_node("rag_feasibility_router", rag_feasibility_router)
     workflow.add_node("calendar_needed", calendar_needed)  
@@ -64,7 +67,7 @@ def create_graph() -> StateGraph:
     # Add edges
     # 일정 흐름
     workflow.add_edge("task_router", "calendar_agent")  # 일정 등록 직접
-    workflow.add_edge("calender_agent", "answer_generator")
+    workflow.add_edge("calendar_agent", "answer_generator")
     #무관 더미
     workflow.add_edge("task_router", "answer_planner")
     # RAG 흐름
@@ -93,8 +96,37 @@ def create_graph() -> StateGraph:
     return workflow
 
 if __name__ == "__main__":
-    # Create and visualize the graph
+    # 그래프 생성
     graph = create_graph()
-    visualize_graph(graph, "oms_agent_graph")
+    #visualize_graph(graph, "oms_agent_graph")  # 시각화 파일 저장
+    workflow_app = graph.compile()
+    # 1. 테스트 입력 준비 (예시)
+    test_query = "2024년 7월 부가세 신고 일정과 준비 서류가 궁금해"  # 원하는 질문으로!
+    state = {
+        "type": "question",
+        "messages": [test_query],
+        "rag_result": None,
+        "search_result": None,
+        "crud_result": None,
+        "final_answer": None,
+        "next_node": None,
+        "agent_messages": [],
+        "router_messages": []
+    }
+
+    # 2. 그래프 실행: LangGraph의 run/invoke 메서드로 상태 전달
+    # 일반적으로 .invoke(state) 형태(최신 버전)
+    result_state = workflow_app.invoke(state)
+    
+    # 3. 결과 출력
+    print("\n=== 최종 출력 ===")
+    print("최종 답변:", result_state.get("final_answer"))
+    print("\n=== 상세 로그 ===")
+    for msg in result_state.get("agent_messages", []):
+        print(msg)
+    print("\n--- Router 로그 ---")
+    for msg in result_state.get("router_messages", []):
+        print(msg)
+
 
 

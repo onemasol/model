@@ -1,5 +1,4 @@
-
-from typing import TypedDict, Annotated, List, Optional, Literal
+from typing import TypedDict, Annotated, List, Optional, Literal, Dict, Any
 
 from typing import TypedDict, Annotated, List, Optional, Literal, Dict, Any
 
@@ -17,7 +16,7 @@ class AgentState(TypedDict):
     next_node: Annotated[Optional[str], "next_node"]
     agent_messages: Annotated[List[str], "agent_conversation_history"]  # agent 간 대화 기록
     router_messages: Annotated[List[str], "router_conversation_history"]  # router 간 대화 기록
-    
+
     ### 캘린더 관련 플레이스홀더 (5개 필드)
     title: Annotated[Optional[str], "이벤트/할일 제목"]
     start_at: Annotated[Optional[str], "시작 시간 (ISO 형식, event용)"]

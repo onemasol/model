@@ -6,3 +6,5 @@
 5. ./run.sh <실행할 Python 스크립트 경로> [추가 인자]
 
 -  scp -r /Users/yiji/.cache/huggingface root@vessl-onemasol:/root/.cache/ : 약 1분 : 생략하고 추후 진행
+
+6. ollama kill 및 재 실행: ps aux | grep ollama -> kill 13198 16236 -> ollama serve &

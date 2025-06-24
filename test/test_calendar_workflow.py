@@ -154,7 +154,8 @@ def test_calendar_workflow():
         initial_state = {
             "messages": [test_case["input"]],
             "agent_messages": [],
-            "router_messages": []
+            "router_messages": [],
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         try:
@@ -423,7 +424,8 @@ def test_specific_scenario():
     initial_state = {
         "messages": [test_input],
         "agent_messages": [],
-        "router_messages": []
+        "router_messages": [],
+        "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
     }
     
     try:
@@ -502,7 +504,8 @@ def test_custom_case():
         initial_state = {
             "messages": [custom_input],
             "agent_messages": [],
-            "router_messages": []
+            "router_messages": [],
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         try:
@@ -713,41 +716,53 @@ def test_custom_case():
             print("   👋 커스텀 테스트를 종료합니다.")
             break
 
-if __name__ == "__main__":
-    print("🚀 Calendar Workflow 테스트 시작")
-    print(f"현재 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    # 테스트 모드 선택
+def test_api_connection():
+    """실제 API 연결을 테스트합니다."""
     print("\n" + "=" * 80)
-    print("🎯 테스트 모드 선택")
+    print("🔗 API 연결 테스트")
     print("=" * 80)
-    print("1. 기본 CRUD 테스트 (모든 케이스)")
-    print("2. 특정 시나리오 테스트")
-    print("3. 커스텀 테스트 케이스")
-    print("4. 모든 테스트 실행")
     
-    while True:
-        choice = input("\n   선택하세요 (1-4): ").strip()
+    import requests
+    
+    # 테스트용 상태
+    test_state = {
+        "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"
+    }
+    
+    try:
+        # 직접 API 호출 테스트
+        api_url = f"http://52.79.95.55:8000/api/v1/calendar/{test_state['user_id']}/all"
+        print(f"🌐 API URL: {api_url}")
         
-        if choice == "1":
-            print("\n📋 기본 CRUD 테스트 실행...")
-            test_calendar_workflow()
-            break
-        elif choice == "2":
-            print("\n🔍 특정 시나리오 테스트 실행...")
-            test_specific_scenario()
-            break
-        elif choice == "3":
-            print("\n🎯 커스텀 테스트 케이스 실행...")
-            test_custom_case()
-            break
-        elif choice == "4":
-            print("\n🚀 모든 테스트 실행...")
-            test_calendar_workflow()
-            test_specific_scenario()
-            test_custom_case()
-            break
+        response = requests.get(api_url, timeout=10)
+        print(f"📊 응답 상태 코드: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ API 연결 성공!")
+            print(f"📋 총 {len(data)}개 일정 조회됨")
+            
+            if data:
+                print(f"📅 첫 번째 일정: {data[0].get('title', 'N/A')}")
+                print(f"   - 시작: {data[0].get('start_at', 'N/A')}")
+                print(f"   - 종료: {data[0].get('end_at', 'N/A')}")
+                print(f"   - ID: {data[0].get('id', 'N/A')}")
         else:
-            print("   ⚠️ 잘못된 선택입니다. 1-4 중에서 선택해주세요.")
+            print(f"❌ API 연결 실패: {response.status_code}")
+            print(f"   응답: {response.text}")
+            
+    except Exception as e:
+        print(f"❌ API 테스트 중 오류: {str(e)}")
+
+if __name__ == "__main__":
+    # API 연결 테스트 먼저 실행
+    test_api_connection()
     
-    print("\n✅ 모든 테스트 완료!") 
+    # 전체 워크플로우 테스트
+    test_calendar_workflow()
+    
+    # 특정 시나리오 테스트
+    test_specific_scenario()
+    
+    # 커스텀 케이스 테스트
+    test_custom_case() 

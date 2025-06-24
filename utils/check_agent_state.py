@@ -27,15 +27,16 @@ results = []
 for agent_name, agent_func in agent_functions.items():
     print(f"▶ {agent_name} 시작")
 
-    dummy_state = {
-        "type": "question",
-        "schedule_type": None,
-        "messages": ["7월 3일에 세무사 보러 가는 일정 잡아줘"],
-        "initial_input": None,
+    # 테스트용 상태 생성
+    test_state = {
+        "type": "schedule",
+        "schedule_type": "event",
+        "initial_input": "7월 3일에 세무사 보러 가는 일정 잡아줘",
         "final_output": None,
         "rag_result": None,
         "search_result": None,
         "crud_result": None,
+        "final_answer": None,
         "next_node": None,
         "agent_messages": [],
         "router_messages": [],

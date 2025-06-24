@@ -12,6 +12,7 @@ from shared import AgentState, model
 
 from agents.rag_retriever import rag_retriever
 from agents.calendar_agent import calendar_agent
+from agents.calselector import calselector
 from agents.websearch_agent import websearch_agent
 from agents.answer_generator import answer_generator
 from agents.answer_planner import answer_planner
@@ -34,7 +35,7 @@ model = ChatOllama(
 
 class AgentState(TypedDict):
     type: Annotated[str, "input_type"]  # "schedule" or "question"
-    messages: Annotated[List[str], "conversation_history"]
+    initial_input: Annotated[str, "user's_initial_input"]
     rag_result: Annotated[Optional[str], "rag_output"]
     search_result: Annotated[Optional[str], "search_output"]
     crud_result: Annotated[Optional[str], "crud_output"]
@@ -53,6 +54,7 @@ def create_graph() -> StateGraph:
     ## Agents
     workflow.add_node("rag_retriever",rag_retriever)
     workflow.add_node("calendar_agent", calendar_agent)
+    workflow.add_node("calselector", calselector)
     workflow.add_node("websearch_agent", websearch_agent)
     workflow.add_node("answer_generator", answer_generator)
     workflow.add_node("answer_planner", answer_planner) 
@@ -69,7 +71,8 @@ def create_graph() -> StateGraph:
     # Add edges
     # 일정 흐름
     workflow.add_edge("task_router", "calendar_agent")  # 일정 등록 직접
-    workflow.add_edge("calendar_agent", "answer_generator")
+    workflow.add_edge("calendar_agent", "calselector")  # calendar_agent에서 calselector로
+    workflow.add_edge("calselector", "answer_generator")  # calselector에서 answer_generator로
     #무관 더미
     workflow.add_edge("task_router", "answer_planner")
     # RAG 흐름
@@ -107,7 +110,7 @@ if __name__ == "__main__":
     test_query = "2024년 7월 부가세 신고 일정과 준비 서류가 궁금해"  # 원하는 질문으로!
     state = {
         "type": "question",
-        "messages": [test_query],
+        "initial_input": test_query,
         "rag_result": None,
         "search_result": None,
         "crud_result": None,

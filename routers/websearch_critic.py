@@ -17,7 +17,7 @@ model = ChatOllama(
 MAX_RETRY = 3  # 최대 재검색 허용 횟수
 
 def websearch_critic(state: Dict) -> Dict:
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
     search_result = state.get("search_result", "")
     retry_count = state.get("websearch_retry_count", 0)
 

@@ -29,7 +29,7 @@ def test_task_router():
         # Initialize test state
         test_state = {
             "type": "question",
-            "messages": [question],
+            "initial_input": question,
             "rag_result": None,
             "search_result": None,
             "crud_result": None,
@@ -68,8 +68,7 @@ def test_user_input():
         state = AgentState(
             type="question",
             schedule_type=None,
-            messages=[user_input],
-            initial_input=None,
+            initial_input=user_input,
             final_output=None,
             rag_result=None,
             search_result=None,
@@ -88,7 +87,6 @@ def test_user_input():
         print(f"- 최종 출력: {result['final_output']}")
         print(f"- 일정 타입: {result.get('schedule_type', '해당 없음')}")
         print(f"- 입력 유형: {result['type']}")
-        print(f"- 대화 기록: {result['messages']}")
         print(f"- 에이전트 대화 기록: {result['agent_messages']}")
         print(f"- 라우터 대화 기록: {result['router_messages']}")
 

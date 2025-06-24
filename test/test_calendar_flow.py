@@ -51,14 +51,15 @@ def test_calendar_flow():
         # 초기 상태 설정
         initial_state = {
             "type": "question",
-            "messages": [test_case["input"]],
+            "initial_input": test_case["input"],
             "rag_result": None,
             "search_result": None,
             "crud_result": None,
             "final_answer": None,
             "next_node": None,
             "agent_messages": [],
-            "router_messages": []
+            "router_messages": [],
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         # 전체 시작 시간
@@ -197,14 +198,15 @@ def test_interactive_calendar_flow():
         # 초기 상태 설정
         initial_state = {
             "type": "question",
-            "messages": [user_input],
+            "initial_input": user_input,
             "rag_result": None,
             "search_result": None,
             "crud_result": None,
             "final_answer": None,
             "next_node": None,
             "agent_messages": [],
-            "router_messages": []
+            "router_messages": [],
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         # 전체 시작 시간

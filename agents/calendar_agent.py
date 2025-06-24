@@ -165,7 +165,7 @@ def calendar_agent(state: Dict) -> Dict:
     Returns:
         state: 업데이트된 상태 딕셔너리
     """
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
     
     # 현재 날짜 가져오기
     current_date = datetime.now()
@@ -186,10 +186,12 @@ def calendar_agent(state: Dict) -> Dict:
        - "task": 완료해야 할 작업 (보고서 작성, 제출, 준비 등)
     
     2. **operation:**
-       - "create": 새로운 일정/할일 추가 ("추가", "등록", "만들어", "해야 해" 등)
-       - "read": 기존 일정/할일 조회 ("보여줘", "확인해줘", "뭐야" 등)
-       - "update": 기존 일정/할일 수정 ("수정", "변경", "바꿔" 등)
-       - "delete": 기존 일정/할일 삭제 ("삭제", "취소", "지워" 등)
+       - "create": 새로운 일정/할일 추가 ("추가", "등록", "만들어", "해야 해", "생성" 등)
+       - "read": 기존 일정/할일 조회 ("보여줘", "확인해줘", "뭐야", "조회" 등)
+       - "update": 기존 일정/할일 수정 ("수정", "변경", "바꿔", "업데이트" 등)
+       - "delete": 기존 일정/할일 삭제 ("삭제", "취소", "지워", "제거", "삭제해줘", "취소해줘" 등)
+    
+    **중요: "취소"는 항상 delete 작업입니다!**
     
     **날짜/시간 처리 규칙:**
     - 현재 날짜({current_date_str})를 기준으로 상대적 날짜 계산
@@ -206,6 +208,9 @@ def calendar_agent(state: Dict) -> Dict:
     - "이번 주 일정 보여줘" → event, read, start_at: "{current_date_str}T00:00:00+09:00", end_at: "2024-01-21T23:59:59+09:00"
     - "할일 목록에 장보기 추가해줘" → task, create, start_at: null, end_at: "{current_date_str}T23:59:59+09:00"
     - "오늘 할 일 보여줘" → task, read, start_at: "{current_date_str}T00:00:00+09:00", end_at: "{current_date_str}T23:59:59+09:00"
+    - "내일 미팅 취소해줘" → event, delete, title: "미팅"
+    - "1월 중순에 있는 레스토랑에서의 약속 취소해줘" → event, delete, title: "레스토랑 약속"
+    - "보고서 작성 할일 삭제해줘" → task, delete, title: "보고서 작성"
     
     다음 형태로만 응답해주세요 (JSON 형식):
     {{

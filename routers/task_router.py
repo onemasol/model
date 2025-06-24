@@ -21,12 +21,7 @@ def task_router(state: AgentState):
     - event: 특정 시간에 진행되는 일정 (예: 회의, 약속)
     - task: 완료해야 할 작업 (예: 보고서 작성, 이메일 확인)
     """
-    latest_message = state["messages"][-1]
-    
-    # 최초 입력이 없을 경우에만 저장
-    if state.get("initial_input") is None:
-        state["initial_input"] = latest_message
-
+    user_query = state["initial_input"]
 
     # Read system prompt from file
     prompt_path = os.path.join(os.path.dirname(__file__), "..", "prompts", "task_router.txt")
@@ -37,7 +32,7 @@ def task_router(state: AgentState):
     analysis_prompt = f"""
     {system_prompt}
     
-    질문: {latest_message}
+    질문: {user_query}
     
     다음 중 하나로만 응답해주세요 (설명 없이):
     RAG

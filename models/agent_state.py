@@ -29,6 +29,7 @@ class AgentState(TypedDict):
 
     ### 추가 필드 (RUD 및 분류/작업 관련)
     rud_candidate_ids: Annotated[Optional[List[str]], "RUD를 위한 유사도 기준 Top3 ID 리스트"]
+    selected_item_id: Annotated[Optional[str], "실제 선택된 항목의 ID (RUD 작업용)"]
     calendar_classification: Annotated[Optional[dict], "캘린더 분류 응답"]
     calendar_operation: Annotated[Optional[str], "캘린더 작업 타입 (create, read 등)"]
     calendar_type: Annotated[Optional[str], "event / task"]

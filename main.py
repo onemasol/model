@@ -12,6 +12,7 @@ from shared import AgentState, model
 
 from agents.rag_retriever import rag_retriever
 from agents.calendar_agent import calendar_agent
+from agents.calselector import calselector
 from agents.websearch_agent import websearch_agent
 from agents.answer_generator import answer_generator
 from agents.answer_planner import answer_planner
@@ -53,6 +54,7 @@ def create_graph() -> StateGraph:
     ## Agents
     workflow.add_node("rag_retriever",rag_retriever)
     workflow.add_node("calendar_agent", calendar_agent)
+    workflow.add_node("calselector", calselector)
     workflow.add_node("websearch_agent", websearch_agent)
     workflow.add_node("answer_generator", answer_generator)
     workflow.add_node("answer_planner", answer_planner) 
@@ -69,7 +71,8 @@ def create_graph() -> StateGraph:
     # Add edges
     # 일정 흐름
     workflow.add_edge("task_router", "calendar_agent")  # 일정 등록 직접
-    workflow.add_edge("calendar_agent", "answer_generator")
+    workflow.add_edge("calendar_agent", "calselector")  # calendar_agent에서 calselector로
+    workflow.add_edge("calselector", "answer_generator")  # calselector에서 answer_generator로
     #무관 더미
     workflow.add_edge("task_router", "answer_planner")
     # RAG 흐름

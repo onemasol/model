@@ -165,7 +165,7 @@ def calendar_agent(state: Dict) -> Dict:
     Returns:
         state: 업데이트된 상태 딕셔너리
     """
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
     
     # 현재 날짜 가져오기
     current_date = datetime.now()

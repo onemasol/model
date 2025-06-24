@@ -20,18 +20,20 @@ def test_slave_two():
         crud_result = input("CRUD 결과: ").strip() or None
         
         # Initialize test state
-        test_state = {
+        state = {
             "type": "question",
-            "messages": [question],
-            "rag_result": rag_result,
-            "search_result": search_result,
-            "crud_result": crud_result,
+            "initial_input": question,
+            "rag_result": None,
+            "search_result": None,
+            "crud_result": None,
             "final_answer": None,
-            "next_node": None
+            "next_node": None,
+            "agent_messages": [],
+            "router_messages": []
         }
         
         # Run slave_two
-        result = slave_two(test_state)
+        result = slave_two(state)
         
         # Print result
         print(f"\n결과:")

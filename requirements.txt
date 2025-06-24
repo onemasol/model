@@ -1,27 +1,139 @@
-# --- LangChain 및 핵심 패키지 ---
-langchain==0.3.25
-langchain-core==0.3.63
-langchain-openai==0.3.19
+# --- 네트워크 및 비동기 ---
+aiohappyeyeballs==2.6.1
+aiohttp==3.12.13
+aiosignal==1.3.2
+async-timeout==4.0.3
+anyio==4.9.0
+httpcore==1.0.9
+httpx==0.28.1
+httpx-sse==0.4.0
+multidict==6.5.0
+yarl==1.20.1
+
+# --- 데이터 처리 및 분석 ---
+pandas==2.2.3
+numpy==2.0.1
+scipy==1.15.3
+scikit-learn
+matplotlib==3.10.0
+seaborn
+bottleneck
+numexpr
+joblib
+tqdm==4.67.1
+threadpoolctl
+sympy==1.14.0
+
+# --- 웹, API, 인증 ---
+fastapi==0.115.6
+uvicorn==0.32.1
+google-api-core==2.25.0rc1
+google-api-python-client==2.173.0
+google-auth==2.40.2
+google-auth-httplib2==0.2.0
+google-cloud-core==2.4.3
+googleapis-common-protos==1.70.0
+google-generativeai==0.4.1
+google-ai-generativelanguage==0.4.0
+httplib2==0.22.0
+requests==2.31.0
+requests-toolbelt==1.0.0
+uritemplate==4.2.0
+PySocks
+rsa==4.9.1
+
+# --- LangChain 및 관련 ---
+langchain==0.3.26
+langchain-core==0.3.66
+langchain-community==0.3.26
+langchain-google-community==2.0.7
+langchain-google-genai==0.0.11
 langchain-mongodb==0.6.2
 langchain-ollama==0.3.3
-
-# --- LangGraph ---
+langchain-openai==0.3.19
 langgraph==0.4.8
+langgraph-checkpoint==2.1.0
+langgraph-prebuilt==0.2.2
+langgraph-sdk==0.1.70
+langsmith==0.3.45
 
-# --- dotenv, LLM, DB, 기타 ---
-python-dotenv==1.0.1
-pydantic==2.11.5
-sentence-transformers==4.1.0
-pymongo==4.13.0
-tqdm==4.67.1
-PyYAML==6.0.2
+# --- LLM, Embedding ---
+openai==1.90.0
 ollama==0.5.1
+transformers==4.52.4
+tokenizers==0.21.1
+sentence-transformers==4.1.0
+tiktoken==0.9.0
+
+# --- DB ---
+pymongo==4.13.0
+SQLAlchemy==2.0.41
+
+# --- 기타 필수 ---
+python-dotenv==1.0.1
+PyYAML==6.0.2
+pydantic==2.11.5
+typing-inspect==0.9.0
+typing-inspection==0.4.1
+typing_extensions==4.13.2
+protobuf==4.25.8
+jsonpatch==1.33
+jsonpointer==3.0.0
+orjson==3.10.18
+ormsgpack==1.10.0
+decorator
+attrs==25.3.0
+six
+idna==3.10
+zipp
+certifi
+charset-normalizer
+chardet
+packaging==23.2
+importlib_metadata
+python-dateutil
+pytz
+tzdata
+
+# --- 시각화 ---
+graphviz==0.20.3
+fonttools
+contourpy
+cycler
+kiwisolver
+pillow
+
+# --- IPython/Jupyter ---
+ipykernel
+ipython
+jupyter_client
+jupyter_core
+matplotlib-inline
+traitlets
+prompt_toolkit
+pexpect
+ptyprocess
+pickleshare
+pyzmq
+debugpy
 
 # --- 기타 ---
-requests==2.31.0
-
-# (아래는 필요에 따라 추가)
+dezero==0.0.13
+gym==0.26.2
+gym-notices==0.0.8
+nest_asyncio
+platformdirs
+pure_eval
+pluggy
+executing
+iniconfig
 pytest==8.0.0
-pytz==2024.1
-chardet==5.2.0
-charset-normalizer==3.3.2
+cloudpickle==3.1.1
+dataclasses-json==0.6.7
+fsspec==2025.5.1
+huggingface-hub==0.33.0
+sentence-transformers==4.1.0
+lark==1.2.2
+unicodedata2
+xxhash==3.5.0
+zstandard==0.23.0

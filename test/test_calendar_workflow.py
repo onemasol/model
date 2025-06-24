@@ -152,7 +152,7 @@ def test_calendar_workflow():
         
         # 초기 상태 설정
         initial_state = {
-            "messages": [test_case["input"]],
+            "initial_input": test_case["input"],
             "agent_messages": [],
             "router_messages": [],
             "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
@@ -422,7 +422,7 @@ def test_specific_scenario():
     print(f"테스트 입력: {test_input}")
     
     initial_state = {
-        "messages": [test_input],
+        "initial_input": test_input,
         "agent_messages": [],
         "router_messages": [],
         "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
@@ -502,7 +502,7 @@ def test_custom_case():
         
         # 초기 상태 설정
         initial_state = {
-            "messages": [custom_input],
+            "initial_input": custom_input,
             "agent_messages": [],
             "router_messages": [],
             "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가

@@ -14,7 +14,7 @@ def run_test():
             break
         # 테스트용 상태(state) 딕셔너리 생성
         state = {
-            "messages": [user_query],
+            "initial_input": user_query,
             "agent_messages": []
         }
         # 웹서치 에이전트 실행

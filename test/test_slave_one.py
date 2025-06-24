@@ -22,7 +22,7 @@ def test_slave_one():
         # Initialize test state
         test_state = {
             "type": "question",
-            "messages": [question],
+            "initial_input": question,
             "rag_result": None,
             "search_result": None,
             "crud_result": None,

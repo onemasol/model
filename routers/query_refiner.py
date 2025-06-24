@@ -15,7 +15,7 @@ model = ChatOllama(
 )
 
 def query_refiner(state: Dict) -> Dict:
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
 
     prompt = f"""
     사용자의 질문을 RAG 기반 벡터 검색에 적합하도록 정제해주세요.

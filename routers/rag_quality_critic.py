@@ -15,7 +15,7 @@ model = ChatOllama(
 )
 
 def rag_quality_critic(state: Dict) -> Dict:
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
     rag_result = state.get("rag_result", "")
 
     prompt = f"""

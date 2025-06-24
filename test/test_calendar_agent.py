@@ -14,7 +14,7 @@ class TestCalendarAgent2(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures before each test method."""
         self.base_state = {
-            "messages": ["테스트 메시지"],
+            "initial_input": "테스트 메시지",
             "agent_messages": []
         }
     
@@ -102,7 +102,7 @@ class TestCalendarAgent2(unittest.TestCase):
                 
                 # 실제 함수 실행 (모킹 없이)
                 test_state = {
-                    "messages": [test_case["input"]],
+                    "initial_input": test_case["input"],
                     "agent_messages": []
                 }
                 
@@ -163,7 +163,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["내일 오후 2시에 팀 미팅 추가해줘"],
+            "initial_input": "내일 오후 2시에 팀 미팅 추가해줘",
             "agent_messages": []
         }
         
@@ -201,7 +201,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["이번 주에 보고서 작성할일 추가해줘"],
+            "initial_input": "이번 주에 보고서 작성할일 추가해줘",
             "agent_messages": []
         }
         
@@ -233,7 +233,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["이번 주 일정 보여줘"],
+            "initial_input": "이번 주 일정 보여줘",
             "agent_messages": []
         }
         
@@ -264,7 +264,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["오늘 할 일 보여줘"],
+            "initial_input": "오늘 할 일 보여줘",
             "agent_messages": []
         }
         
@@ -295,7 +295,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["내일 미팅을 오후 3시로 수정해줘"],
+            "initial_input": "내일 미팅을 오후 3시로 수정해줘",
             "agent_messages": []
         }
         
@@ -326,7 +326,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["내일 미팅 삭제해줘"],
+            "initial_input": "내일 미팅 삭제해줘",
             "agent_messages": []
         }
         
@@ -351,7 +351,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["일정 보여줘"],
+            "initial_input": "일정 보여줘",
             "agent_messages": []
         }
         
@@ -374,7 +374,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["일정 보여줘"],
+            "initial_input": "일정 보여줘",
             "agent_messages": []
         }
         
@@ -395,7 +395,7 @@ class TestCalendarAgent2(unittest.TestCase):
         
         # Test state
         test_state = {
-            "messages": ["일정 보여줘"],
+            "initial_input": "일정 보여줘",
             "agent_messages": []
         }
         
@@ -413,7 +413,7 @@ class TestCalendarAgent2(unittest.TestCase):
         """Test that existing state is preserved and not overwritten."""
         # Test state with existing data
         test_state = {
-            "messages": ["일정 보여줘"],
+            "initial_input": "일정 보여줘",
             "agent_messages": [{"previous": "data"}],
             "existing_key": "existing_value"
         }
@@ -479,7 +479,7 @@ class TestCalendarAgent2(unittest.TestCase):
                 
                 # Test state
                 test_state = {
-                    "messages": [test_case["input"]],
+                    "initial_input": test_case["input"],
                     "agent_messages": []
                 }
                 
@@ -505,7 +505,7 @@ class TestCalendarAgent2(unittest.TestCase):
             print(f"입력: {user_input}")
             
             test_state = {
-                "messages": [user_input],
+                "initial_input": user_input,
                 "agent_messages": []
             }
             

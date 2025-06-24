@@ -12,16 +12,14 @@ yarl==1.20.1
 
 # --- 데이터 처리 및 분석 ---
 pandas==2.2.3
-numpy==2.0.1
+numpy==2.3.0
 scipy==1.15.3
 scikit-learn==1.5.1
 matplotlib==3.10.0
 seaborn
 bottleneck
 numexpr
-joblib
 tqdm==4.67.1
-threadpoolctl
 sympy==1.14.0
 
 # --- 웹, API, 인증 ---
@@ -29,7 +27,6 @@ fastapi==0.115.6
 uvicorn==0.32.1
 requests==2.31.0
 requests-toolbelt==1.0.0
-PySocks
 rsa==4.9.1
 httplib2==0.22.0
 google-api-core==2.25.0rc1
@@ -38,16 +35,15 @@ google-auth==2.40.2
 google-auth-httplib2==0.2.0
 google-cloud-core==2.4.3
 googleapis-common-protos==1.70.0
-google-generativeai==0.4.1
-google-ai-generativelanguage==0.4.0
+google-generativeai==0.8.5
+google-ai-generativelanguage==0.6.15
 uritemplate==4.2.0
 
 # --- LangChain 및 관련 ---
 langchain==0.3.26
-langchain-core==0.3.66
 langchain-community==0.3.26
 langchain-google-community==2.0.7
-langchain-google-genai==0.0.11
+langchain-google-genai==2.0.7
 langchain-mongodb==0.6.2
 langchain-ollama==0.3.3
 langchain-openai==0.3.19
@@ -86,53 +82,17 @@ orjson==3.10.18
 ormsgpack==1.10.0
 attrs==25.3.0
 idna==3.10
-certifi
-charset-normalizer
-chardet==5.2.0
-packaging==23.2
-importlib_metadata
-python-dateutil
-pytz
-tzdata
 
 # --- 시각화 ---
 graphviz==0.20.3
-fonttools
-contourpy
-cycler
-kiwisolver
-pillow
-
-# --- IPython/Jupyter ---
-ipykernel
-ipython
-jupyter_client
-jupyter_core
-matplotlib-inline
-traitlets
-prompt_toolkit
-pexpect
-ptyprocess
-pickleshare
-pyzmq
-debugpy
 
 # --- 기타 ---
 dezero==0.0.13
-gym==0.26.2
-gym-notices==0.0.8
-nest_asyncio
-platformdirs
-pure_eval
-pluggy
-executing
-iniconfig
 pytest==8.0.0
 cloudpickle==3.1.1
 dataclasses-json==0.6.7
 fsspec==2025.5.1
 huggingface-hub==0.33.0
 lark==1.2.2
-unicodedata2
 xxhash==3.5.0
 zstandard==0.23.0

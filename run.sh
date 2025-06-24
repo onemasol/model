@@ -1,6 +1,4 @@
 #!/bin/bash
-eval "$(conda shell.bash hook)"
-conda activate ds
 
 # 실행할 기본 파일 설정
 DEFAULT_SCRIPT="/root/model/test/test_rag_flow.py"

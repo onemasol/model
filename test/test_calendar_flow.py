@@ -58,7 +58,8 @@ def test_calendar_flow():
             "final_answer": None,
             "next_node": None,
             "agent_messages": [],
-            "router_messages": []
+            "router_messages": [],
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         # 전체 시작 시간
@@ -204,7 +205,8 @@ def test_interactive_calendar_flow():
             "final_answer": None,
             "next_node": None,
             "agent_messages": [],
-            "router_messages": []
+            "router_messages": [],
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         # 전체 시작 시간

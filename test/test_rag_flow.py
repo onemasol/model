@@ -392,11 +392,11 @@ def test_comprehensive_rag_flow():
 def test_interactive_comprehensive_flow():
     """사용자 입력을 받아서 종합적인 플로우를 대화형으로 테스트합니다."""
     
-    print("\n" + "=" * 80)
-    print("🎯 대화형 종합 Flow 테스트")
-    print("=" * 80)
-    print("질문을 입력하면 RAG → 웹서치 → 캘린더 → 답변생성의 전체 플로우를 테스트합니다.")
-    print("종료하려면 'quit' 또는 'exit'를 입력하세요.")
+    print_with_flush("\n" + "=" * 80)
+    print_with_flush("🎯 대화형 종합 Flow 테스트")
+    print_with_flush("=" * 80)
+    print_with_flush("질문을 입력하면 RAG → 웹서치 → 캘린더 → 답변생성의 전체 플로우를 테스트합니다.")
+    print_with_flush("종료하려면 'quit' 또는 'exit'를 입력하세요.")
     
     while True:
         # 사용자 입력 받기
@@ -404,14 +404,14 @@ def test_interactive_comprehensive_flow():
         
         # 종료 조건 확인
         if user_input.lower() in ['quit', 'exit', 'q']:
-            print("\n테스트를 종료합니다.")
+            print_with_flush("\n테스트를 종료합니다.")
             break
         
         if not user_input:
-            print("입력이 비어있습니다. 다시 입력해주세요.")
+            print_with_flush("입력이 비어있습니다. 다시 입력해주세요.")
             continue
         
-        print(f"\n🔄 '{user_input}' 처리 중...")
+        print_with_flush(f"\n🔄 '{user_input}' 처리 중...")
         
         # 초기 상태 설정
         current_state = {
@@ -431,176 +431,245 @@ def test_interactive_comprehensive_flow():
         
         try:
             # Step 1: task_router
-            print("\n1️⃣ Task Router 실행...")
+            print_with_flush("\n1️⃣ Task Router 실행...")
             step_start_time = time.time()
             current_state = task_router(current_state.copy())
             step_end_time = time.time()
             step_duration = step_end_time - step_start_time
             
             next_node = current_state.get('next_node')
-            print(f"   → 다음 노드: {next_node}")
-            print(f"   → 실행 시간: {step_duration:.2f}초")
+            print_with_flush(f"   → 다음 노드: {next_node}")
+            print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
             
             if next_node != 'query_refiner':
-                print(f"   ❌ query_refiner로 라우팅되지 않음. 실제: {next_node}")
-                continue
+                print_with_flush(f"   ⚠️ query_refiner로 라우팅되지 않음. 실제: {next_node}")
             
             # Step 2: query_refiner
-            print("\n2️⃣ Query Refiner 실행...")
+            print_with_flush("\n2️⃣ Query Refiner 실행...")
             step_start_time = time.time()
             current_state = query_refiner(current_state.copy())
             step_end_time = time.time()
             step_duration = step_end_time - step_start_time
             
             next_node = current_state.get('next_node')
-            print(f"   → 다음 노드: {next_node}")
-            print(f"   → 실행 시간: {step_duration:.2f}초")
+            print_with_flush(f"   → 다음 노드: {next_node}")
+            print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
             
             if next_node != 'rag_retriever':
-                print(f"   ❌ rag_retriever로 라우팅되지 않음. 실제: {next_node}")
-                continue
+                print_with_flush(f"   ⚠️ rag_retriever로 라우팅되지 않음. 실제: {next_node}")
             
             # Step 3: rag_retriever
-            print("\n3️⃣ RAG Retriever 실행...")
+            print_with_flush("\n3️⃣ RAG Retriever 실행...")
             step_start_time = time.time()
-            current_state = rag_retriever(current_state.copy())
-            step_end_time = time.time()
-            step_duration = step_end_time - step_start_time
-            
-            rag_content = current_state.get('rag_result', '')
-            print(f"   → RAG 결과: {len(rag_content)}자")
-            print(f"   → 실행 시간: {step_duration:.2f}초")
-            
-            next_node = current_state.get('next_node')
-            print(f"   → 다음 노드: {next_node}")
-            
-            if next_node != 'rag_quality_critic':
-                print(f"   ❌ rag_quality_critic로 라우팅되지 않음. 실제: {next_node}")
-                continue
-            
-            # Step 4: rag_quality_critic
-            print("\n4️⃣ RAG Quality Critic 실행...")
-            step_start_time = time.time()
-            current_state = rag_quality_critic(current_state.copy())
-            step_end_time = time.time()
-            step_duration = step_end_time - step_start_time
-            
-            next_node = current_state.get('next_node')
-            print(f"   → 다음 노드: {next_node}")
-            print(f"   → 실행 시간: {step_duration:.2f}초")
-            
-            # Step 5: rag_quality_critic 이후 분기 처리
-            if next_node == 'rag_retriever':
-                print("\n🔄 RAG 재검색 필요 - RAG Retriever 재실행")
-                step_start_time = time.time()
+            try:
                 current_state = rag_retriever(current_state.copy())
                 step_end_time = time.time()
                 step_duration = step_end_time - step_start_time
                 
                 rag_content = current_state.get('rag_result', '')
-                print(f"   → RAG 재검색 결과: {len(rag_content)}자")
-                print(f"   → 실행 시간: {step_duration:.2f}초")
+                print_with_flush(f"   → RAG 결과: {len(rag_content)}자")
+                print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                if rag_content:
+                    print_with_flush(f"   → RAG 내용:")
+                    print_with_flush(f"     {rag_content}")
                 
-                # 재검색 후 다시 critic 실행
-                print("\n🎯 RAG Quality Critic 재실행")
-                step_start_time = time.time()
-                current_state = rag_quality_critic(current_state.copy())
-                step_end_time = time.time()
-                step_duration = step_end_time - step_start_time
                 next_node = current_state.get('next_node')
-                print(f"   → 다음 노드: {next_node}")
-                print(f"   → 실행 시간: {step_duration:.2f}초")
+                print_with_flush(f"   → 다음 노드: {next_node}")
+                
+                if next_node != 'rag_quality_critic':
+                    print_with_flush(f"   ⚠️ rag_quality_critic로 라우팅되지 않음. 실제: {next_node}")
+                    
+            except Exception as rag_error:
+                print_with_flush(f"   ❌ RAG Retriever 실패: {str(rag_error)}")
+                print_with_flush(f"   → 오류 타입: {type(rag_error).__name__}")
+                print_with_flush(f"   → 실행 시간: {time.time() - step_start_time:.2f}초")
+                # RAG 실패 시 웹서치로 전환
+                current_state['next_node'] = 'websearch_agent'
+                next_node = 'websearch_agent'
             
-            elif next_node == 'websearch_agent':
-                print("\n🌐 웹서치 필요 - Websearch Agent 실행")
+            # Step 4: rag_quality_critic
+            if next_node == 'rag_quality_critic':
+                print_with_flush("\n4️⃣ RAG Quality Critic 실행...")
                 step_start_time = time.time()
-                current_state = websearch_agent(current_state.copy())
-                step_end_time = time.time()
-                step_duration = step_end_time - step_start_time
-                
-                search_content = current_state.get('search_result', '')
-                print(f"   → 웹서치 결과: {len(search_content)}자")
-                print(f"   → 실행 시간: {step_duration:.2f}초")
-                
-                next_node = current_state.get('next_node')
-                print(f"   → 다음 노드: {next_node}")
-                
-                if next_node == 'websearch_critic':
-                    print("\n🎯 Websearch Critic 실행")
+                try:
+                    current_state = rag_quality_critic(current_state.copy())
+                    step_end_time = time.time()
+                    step_duration = step_end_time - step_start_time
+                    
+                    next_node = current_state.get('next_node')
+                    print_with_flush(f"   → 다음 노드: {next_node}")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    
+                    # 품질 평가 결과 확인
+                    router_messages = current_state.get('router_messages', [])
+                    if router_messages:
+                        print_with_flush(f"   → 품질 평가: {router_messages[-1].get('decision', 'N/A')}")
+                        print_with_flush(f"   → 라우터 메시지:")
+                        for msg in router_messages:
+                            print_with_flush(f"     {msg}")
+                            
+                except Exception as critic_error:
+                    print_with_flush(f"   ❌ RAG Quality Critic 실패: {str(critic_error)}")
+                    print_with_flush(f"   → 오류 타입: {type(critic_error).__name__}")
+                    print_with_flush(f"   → 실행 시간: {time.time() - step_start_time:.2f}초")
+                    next_node = 'websearch_agent'
+            
+            # Step 5: rag_quality_critic 이후 분기 처리
+            if next_node == 'rag_retriever':
+                print_with_flush("\n🔄 RAG 재검색 필요 - RAG Retriever 재실행")
+                step_start_time = time.time()
+                try:
+                    current_state = rag_retriever(current_state.copy())
+                    step_end_time = time.time()
+                    step_duration = step_end_time - step_start_time
+                    
+                    rag_content = current_state.get('rag_result', '')
+                    print_with_flush(f"   → RAG 재검색 결과: {len(rag_content)}자")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    if rag_content:
+                        print_with_flush(f"   → RAG 재검색 내용:")
+                        print_with_flush(f"     {rag_content}")
+                    
+                    # 재검색 후 다시 critic 실행
+                    print_with_flush("\n🎯 RAG Quality Critic 재실행")
                     step_start_time = time.time()
-                    current_state = websearch_critic(current_state.copy())
+                    current_state = rag_quality_critic(current_state.copy())
                     step_end_time = time.time()
                     step_duration = step_end_time - step_start_time
                     next_node = current_state.get('next_node')
-                    print(f"   → 다음 노드: {next_node}")
-                    print(f"   → 실행 시간: {step_duration:.2f}초")
+                    print_with_flush(f"   → 다음 노드: {next_node}")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    
+                except Exception as retry_error:
+                    print_with_flush(f"   ❌ RAG 재검색 실패: {str(retry_error)}")
+                    next_node = 'websearch_agent'
+            
+            elif next_node == 'websearch_agent':
+                print_with_flush("\n🌐 웹서치 필요 - Websearch Agent 실행")
+                step_start_time = time.time()
+                try:
+                    current_state = websearch_agent(current_state.copy())
+                    step_end_time = time.time()
+                    step_duration = step_end_time - step_start_time
+                    
+                    search_content = current_state.get('search_result', '')
+                    print_with_flush(f"   → 웹서치 결과: {len(search_content)}자")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    if search_content:
+                        print_with_flush(f"   → 웹서치 내용:")
+                        print_with_flush(f"     {search_content}")
+                    
+                    next_node = current_state.get('next_node')
+                    print_with_flush(f"   → 다음 노드: {next_node}")
+                    
+                    if next_node == 'websearch_critic':
+                        print_with_flush("\n🎯 Websearch Critic 실행")
+                        step_start_time = time.time()
+                        current_state = websearch_critic(current_state.copy())
+                        step_end_time = time.time()
+                        step_duration = step_end_time - step_start_time
+                        next_node = current_state.get('next_node')
+                        print_with_flush(f"   → 다음 노드: {next_node}")
+                        print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                        
+                except Exception as websearch_error:
+                    print_with_flush(f"   ❌ Websearch Agent 실패: {str(websearch_error)}")
+                    print_with_flush(f"   → 오류 타입: {type(websearch_error).__name__}")
+                    print_with_flush(f"   → 실행 시간: {time.time() - step_start_time:.2f}초")
+                    next_node = 'answer_planner'
             
             # Step 6: calendar_needed 또는 answer_planner로 분기
             if next_node == 'calendar_needed':
-                print("\n📅 캘린더 필요 - Calendar Needed 실행")
+                print_with_flush("\n📅 캘린더 필요 - Calendar Needed 실행")
                 step_start_time = time.time()
-                current_state = calendar_needed(current_state.copy())
-                step_end_time = time.time()
-                step_duration = step_end_time - step_start_time
-                
-                next_node = current_state.get('next_node')
-                print(f"   → 다음 노드: {next_node}")
-                print(f"   → 실행 시간: {step_duration:.2f}초")
-                
-                if next_node == 'calendar_agent':
-                    print("\n📅 Calendar Agent 실행")
-                    step_start_time = time.time()
-                    current_state = calendar_agent(current_state.copy())
+                try:
+                    current_state = calendar_needed(current_state.copy())
                     step_end_time = time.time()
                     step_duration = step_end_time - step_start_time
                     
-                    payload = current_state.get('event_payload', {})
-                    print(f"   → 일정 정보: {payload.get('title', 'N/A') if payload else 'N/A'}")
-                    print(f"   → 실행 시간: {step_duration:.2f}초")
-                    
                     next_node = current_state.get('next_node')
+                    print_with_flush(f"   → 다음 노드: {next_node}")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    
+                    if next_node == 'calendar_agent':
+                        print_with_flush("\n📅 Calendar Agent 실행")
+                        step_start_time = time.time()
+                        current_state = calendar_agent(current_state.copy())
+                        step_end_time = time.time()
+                        step_duration = step_end_time - step_start_time
+                        
+                        payload = current_state.get('event_payload', {})
+                        print_with_flush(f"   → 일정 정보: {payload.get('title', 'N/A') if payload else 'N/A'}")
+                        print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                        if payload:
+                            print_with_flush(f"   → 전체 페이로드: {payload}")
+                        
+                        next_node = current_state.get('next_node')
+                        
+                except Exception as calendar_error:
+                    print_with_flush(f"   ❌ Calendar 관련 실패: {str(calendar_error)}")
+                    print_with_flush(f"   → 오류 타입: {type(calendar_error).__name__}")
+                    print_with_flush(f"   → 실행 시간: {time.time() - step_start_time:.2f}초")
+                    next_node = 'answer_planner'
             
             # Step 7: answer_planner 실행
             if next_node == 'answer_planner':
-                print("\n📝 Answer Planner 실행")
+                print_with_flush("\n📝 Answer Planner 실행")
                 step_start_time = time.time()
-                current_state = answer_planner(current_state.copy())
-                step_end_time = time.time()
-                step_duration = step_end_time - step_start_time
-                
-                next_node = current_state.get('next_node')
-                print(f"   → 다음 노드: {next_node}")
-                print(f"   → 실행 시간: {step_duration:.2f}초")
+                try:
+                    current_state = answer_planner(current_state.copy())
+                    step_end_time = time.time()
+                    step_duration = step_end_time - step_start_time
+                    
+                    next_node = current_state.get('next_node')
+                    print_with_flush(f"   → 다음 노드: {next_node}")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    
+                except Exception as planner_error:
+                    print_with_flush(f"   ❌ Answer Planner 실패: {str(planner_error)}")
+                    print_with_flush(f"   → 오류 타입: {type(planner_error).__name__}")
+                    print_with_flush(f"   → 실행 시간: {time.time() - step_start_time:.2f}초")
+                    next_node = 'answer_generator'
             
             # Step 8: answer_generator 실행
             if next_node == 'answer_generator':
-                print("\n💬 Answer Generator 실행")
+                print_with_flush("\n💬 Answer Generator 실행")
                 step_start_time = time.time()
-                current_state = answer_generator(current_state.copy())
-                step_end_time = time.time()
-                step_duration = step_end_time - step_start_time
-                
-                final_answer = current_state.get('final_answer', '')
-                print(f"   → 최종 답변: {len(final_answer)}자")
-                print(f"   → 실행 시간: {step_duration:.2f}초")
-                if final_answer:
-                    print(f"   → 답변 미리보기: {final_answer[:100]}...")
+                try:
+                    current_state = answer_generator(current_state.copy())
+                    step_end_time = time.time()
+                    step_duration = step_end_time - step_start_time
+                    
+                    final_answer = current_state.get('final_answer', '')
+                    print_with_flush(f"   → 최종 답변: {len(final_answer)}자")
+                    print_with_flush(f"   → 실행 시간: {step_duration:.2f}초")
+                    if final_answer:
+                        print_with_flush(f"   → 답변 미리보기: {final_answer[:200]}...")
+                        print_with_flush(f"   → 전체 답변:")
+                        print_with_flush(f"     {final_answer}")
+                    
+                except Exception as generator_error:
+                    print_with_flush(f"   ❌ Answer Generator 실패: {str(generator_error)}")
+                    print_with_flush(f"   → 오류 타입: {type(generator_error).__name__}")
+                    print_with_flush(f"   → 실행 시간: {time.time() - step_start_time:.2f}초")
             
             # 전체 실행 시간 계산
             total_end_time = time.time()
             total_duration = total_end_time - total_start_time
-            print(f"\n⏱️  총 실행 시간: {total_duration:.2f}초")
+            print_with_flush(f"\n⏱️  총 실행 시간: {total_duration:.2f}초")
             
             # 최종 결과 확인
             final_answer = current_state.get('final_answer', '')
             if final_answer:
-                print("\n✅ 전체 플로우 성공! 최종 답변이 생성되었습니다.")
+                print_with_flush("\n✅ 전체 플로우 성공! 최종 답변이 생성되었습니다.")
             else:
-                print(f"\n📋 플로우 완료. 최종 노드: {current_state.get('next_node', 'N/A')}")
+                print_with_flush(f"\n📋 플로우 완료. 최종 노드: {current_state.get('next_node', 'N/A')}")
             
         except Exception as e:
-            print(f"\n❌ 오류 발생: {str(e)}")
+            print_with_flush(f"\n❌ 오류 발생: {str(e)}")
+            print_with_flush(f"   → 오류 타입: {type(e).__name__}")
             import traceback
+            print_with_flush("   → 상세 오류:")
             traceback.print_exc()
 
 if __name__ == "__main__":

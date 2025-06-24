@@ -164,8 +164,8 @@ class CandidateSelector:
         
         return score
     
-    def select_top_candidates(self, items: List[Dict[str, Any]], query_info: Dict[str, Any], top_k: int = 3) -> List[str]:
-        """유사도 점수를 기반으로 Top-K 후보를 선택합니다."""
+    def select_top_candidates(self, items: List[Dict[str, Any]], query_info: Dict[str, Any]) -> List[str]:
+        """유사도 점수를 기반으로 Top-1 후보를 선택합니다."""
         if not items:
             return []
         
@@ -184,13 +184,16 @@ class CandidateSelector:
         # 점수 기준으로 정렬 (높은 점수 우선)
         scored_items.sort(key=lambda x: x['score'], reverse=True)
         
-        # Top-K 선택
-        top_candidates = scored_items[:top_k]
+        # Top-1 선택
+        top_candidate = scored_items[0] if scored_items else None
         
         # 디버깅을 위한 점수 출력
-        self._print_candidate_scores(top_candidates)
-        
-        return [candidate['id'] for candidate in top_candidates]
+        if top_candidate:
+            self._print_candidate_scores([top_candidate])
+            return [top_candidate['id']]
+        else:
+            print(f"\n🔍 유사도 점수 계산 결과: 후보 없음")
+            return []
     
     def _print_candidate_scores(self, candidates: List[Dict[str, Any]]) -> None:
         """후보 점수를 출력합니다."""
@@ -313,10 +316,10 @@ class CalSelector:
             events, tasks, all_items = self._analyze_response(api_result)
             
             # 후보 선택
-            rud_candidate_ids = self._select_candidates(all_items, query_info, operation_type)
+            selected_item_id = self._select_candidates(all_items, query_info, operation_type)
             
             # 상태 업데이트
-            updated_state = self._update_state(state, api_result, events, tasks, rud_candidate_ids)
+            updated_state = self._update_state(state, api_result, events, tasks, selected_item_id)
             
             # 로그 기록
             self._log_activity(updated_state, schedule_type, operation_type, api_result)
@@ -371,38 +374,39 @@ class CalSelector:
         
         return events, tasks, all_items
     
-    def _select_candidates(self, all_items: List[Dict[str, Any]], query_info: Dict[str, Any], operation_type: str) -> List[str]:
+    def _select_candidates(self, all_items: List[Dict[str, Any]], query_info: Dict[str, Any], operation_type: str) -> Optional[str]:
         """작업 유형에 따라 후보를 선택합니다."""
-        rud_candidate_ids = []
+        selected_item_id = None
         
         if all_items and query_info:
             if operation_type == "read":
-                # READ 작업: 모든 항목을 후보로 설정
-                print(f"\n📋 READ 작업: 모든 항목을 후보로 설정")
-                for item in all_items:
-                    item_id = item.get('id') or item.get('task_id')
+                # READ 작업: 첫 번째 항목만 선택
+                print(f"\n📋 READ 작업: 첫 번째 항목 선택")
+                if all_items:
+                    item_id = all_items[0].get('id') or all_items[0].get('task_id')
                     if item_id:
-                        rud_candidate_ids.append(item_id)
-                print(f"   - 총 {len(rud_candidate_ids)}개 항목을 후보로 설정")
+                        selected_item_id = item_id
+                        print(f"   - 선택된 항목: {all_items[0].get('title', 'N/A')}")
             else:
                 # UPDATE/DELETE 작업: 유사도 기반 선택
                 print(f"\n🎯 유사도 기반 후보 선택 중...")
                 print(f"   - 쿼리 정보: {json.dumps(query_info, ensure_ascii=False, indent=2)}")
-                rud_candidate_ids = self.candidate_selector.select_top_candidates(all_items, query_info, top_k=3)
+                candidate_ids = self.candidate_selector.select_top_candidates(all_items, query_info)
+                selected_item_id = candidate_ids[0] if candidate_ids else None
         else:
-            # 쿼리 정보가 없거나 항목이 없는 경우 기본 선택
-            print(f"\n⚠️ 쿼리 정보가 없어 기본 선택을 사용합니다.")
-            for item in all_items:
-                item_id = item.get('id') or item.get('task_id')
+            # 쿼리 정보가 없거나 항목이 없는 경우 첫 번째 항목 선택
+            print(f"\n⚠️ 쿼리 정보가 없어 첫 번째 항목을 선택합니다.")
+            if all_items:
+                item_id = all_items[0].get('id') or all_items[0].get('task_id')
                 if item_id:
-                    rud_candidate_ids.append(item_id)
-            rud_candidate_ids = rud_candidate_ids[:3]
+                    selected_item_id = item_id
+                    print(f"   - 선택된 항목: {all_items[0].get('title', 'N/A')}")
         
-        return rud_candidate_ids
+        return selected_item_id
     
     def _update_state(self, state: Dict[str, Any], api_result: Dict[str, Any], 
                      events: List[Dict[str, Any]], tasks: List[Dict[str, Any]], 
-                     rud_candidate_ids: List[str]) -> Dict[str, Any]:
+                     selected_item_id: Optional[str]) -> Dict[str, Any]:
         """상태를 업데이트합니다."""
         # API 응답 구성
         api_responses = [{
@@ -429,14 +433,12 @@ class CalSelector:
         # 상태 업데이트
         state["api_requests"] = [api_result["request"]]
         state["api_responses"] = api_responses
-        state["rud_candidate_ids"] = rud_candidate_ids
+        state["selected_item_id"] = selected_item_id
         state["next_node"] = "answer_generator"
         
-        # 선택된 항목 정보 저장
-        if rud_candidate_ids:
-            selected_id = rud_candidate_ids[0]
-            state["selected_item_id"] = selected_id
-            print(f"\n✅ 선택된 항목 ID: {selected_id}")
+        # 선택된 항목 정보 출력
+        if selected_item_id:
+            print(f"\n✅ 선택된 항목 ID: {selected_item_id}")
         else:
             print(f"\n⚠️ 선택할 후보 항목이 없습니다.")
         

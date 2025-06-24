@@ -35,7 +35,7 @@ model = ChatOllama(
 
 class AgentState(TypedDict):
     type: Annotated[str, "input_type"]  # "schedule" or "question"
-    messages: Annotated[List[str], "conversation_history"]
+    initial_input: Annotated[str, "user's_initial_input"]
     rag_result: Annotated[Optional[str], "rag_output"]
     search_result: Annotated[Optional[str], "search_output"]
     crud_result: Annotated[Optional[str], "crud_output"]
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     test_query = "2024년 7월 부가세 신고 일정과 준비 서류가 궁금해"  # 원하는 질문으로!
     state = {
         "type": "question",
-        "messages": [test_query],
+        "initial_input": test_query,
         "rag_result": None,
         "search_result": None,
         "crud_result": None,

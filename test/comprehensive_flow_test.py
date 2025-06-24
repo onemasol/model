@@ -70,7 +70,7 @@ def create_test_state(query: str) -> dict:
     """테스트용 상태 생성"""
     return {
         "type": "question",
-        "messages": [query],
+        "initial_input": query,
         "rag_result": None,
         "search_result": None,
         "crud_result": None,
@@ -80,7 +80,6 @@ def create_test_state(query: str) -> dict:
         "router_messages": [],
         # 추가 필드들 (기본값으로 설정)
         "schedule_type": None,
-        "initial_input": None,
         "final_output": None,
         "title": None,
         "start_at": None,
@@ -88,7 +87,6 @@ def create_test_state(query: str) -> dict:
         "due_at": None,
         "timezone": None,
         "event_type": None,
-        "rud_candidate_ids": None,
         "calendar_classification": None,
         "calendar_operation": None,
         "calendar_type": None,
@@ -103,7 +101,7 @@ def print_result(result_state: dict, test_name: str):
     print(f"📋 테스트: {test_name}")
     print(f"{'='*60}")
     
-    print(f"\n❓ 입력 질문: {result_state['messages'][-1]}")
+    print(f"\n❓ 입력 질문: {result_state['initial_input']}")
     print(f"\n✅ 최종 답변:")
     print(f"{result_state.get('final_answer', '답변 없음')}")
     

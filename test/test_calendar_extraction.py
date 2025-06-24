@@ -101,7 +101,7 @@ def test_full_agent():
     
     # 테스트용 상태 설정
     test_state = {
-        "messages": ["내일 오후 2시에 팀 미팅 일정 추가해줘"],
+        "initial_input": "내일 오후 2시에 팀 미팅 일정 추가해줘",
         "available_calendars": [
             {"id": "primary", "summary": "기본 캘린더", "primary": True},
             {"id": "work@company.com", "summary": "업무 캘린더", "primary": False}
@@ -115,7 +115,7 @@ def test_full_agent():
     # 에이전트 실행
     result_state = calendar_agent(test_state)
     
-    print("입력 질의:", test_state["messages"][0])
+    print("입력 질의:", test_state["initial_input"])
     print("\n결과 요약:", result_state["crud_result"])
     print("\n페이로드:")
     print(json.dumps(result_state["calendar_payload"], ensure_ascii=False, indent=2))

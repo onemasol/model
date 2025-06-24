@@ -10,7 +10,7 @@ def extract_all_nodes() -> Set[str]:
 def check_next_nodes(router_functions: dict):
     graph_nodes = extract_all_nodes()
     for name, func in router_functions.items():
-        dummy_state = {"messages": ["테스트 질문"]}
+        dummy_state = {"initial_input": "테스트 질문"}
         try:
             result = func(dummy_state.copy())
             next_node = result.get("next_node", None)

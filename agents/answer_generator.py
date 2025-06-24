@@ -41,7 +41,7 @@ model = ChatOllama(
 )
 
 def answer_generator(state: Dict) -> Dict:
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
     rag_info = state.get("rag_result", "")
     web_info = state.get("search_result", "")
     crud_info = state.get("crud_result", "")

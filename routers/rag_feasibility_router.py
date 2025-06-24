@@ -8,7 +8,7 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 
 def rag_feasibility_router(state: AgentState) -> AgentState:
-    user_question = state["messages"][-1]
+    user_question = state["initial_input"]
     
     prompt = f"""
     당신은 질문이 벡터DB 기반 문서(RAG)로 답변 가능한지를 판단하는 전문가입니다.

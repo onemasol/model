@@ -9,14 +9,14 @@ llm_system = LLMSystem()
 
 def rag_retriever(state: dict) -> dict:
     """
-    state["messages"][-1]에 있는 최신 사용자 쿼리를 받아
+    state["initial_input"]에 있는 사용자 쿼리를 받아
     1. RAG 문서 검색 → 문서 기반 답변 생성
     2. 결과를 state["rag_result"], state["rag_docs"]에 저장
     3. agent_messages 로그 기록
     4. next_node는 rag_quality_critic로 설정
     """
 
-    user_query = state["messages"][-1]
+    user_query = state["initial_input"]
 
     # 1. 문서 검색 (RAG)
     relevant_docs = rag_system.search_documents(user_query)

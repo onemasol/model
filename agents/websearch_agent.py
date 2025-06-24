@@ -55,7 +55,7 @@ def websearch_agent(state: Dict) -> Dict:
 
     # 2. 없으면 user_query를 LLM으로 정제해서 검색용 쿼리 생성
     if not search_query:
-        user_query = state["messages"][-1]
+        user_query = state["initial_input"]
         search_query = refine_query_for_search(user_query, model)
 
     try:
@@ -68,7 +68,7 @@ def websearch_agent(state: Dict) -> Dict:
 당신은 요식업 자영업자의 질문에 대해, 구글 웹 검색 결과를 바탕으로 신뢰도 높은 요약 답변을 작성하는 전문가입니다.
 
 [사용자 질문]
-"{state['messages'][-1]}"
+"{state['initial_input']}"
 
 [검색용 키워드]
 "{search_query}"
@@ -98,7 +98,7 @@ def websearch_agent(state: Dict) -> Dict:
         state.setdefault("agent_messages", []).append({
             "agent": "websearch_agent",
             "query_used": search_query,
-            "origin_query": state["messages"][-1],
+            "origin_query": state["initial_input"],
             "search_raw": results[:500],
             "summary": summary,
         })

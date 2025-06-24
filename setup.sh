@@ -3,6 +3,12 @@
 # unzip, curl 설치
 apt update && apt install -y unzip curl software-properties-common
 
+# ngrok 설치
+curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | tee /etc/apt/sources.list.d/ngrok.list
+apt update
+apt install -y ngrok
+
 # PPA 추가 (에러 무시)
 add-apt-repository ppa:deadsnakes/ppa -y || true
 apt update

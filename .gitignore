@@ -201,3 +201,8 @@ cython_debug/
 
 dmypy.json 
 
+
+# Python Bytecode Cache
+**/__pycache__/
+*.pyc
+*.pyo

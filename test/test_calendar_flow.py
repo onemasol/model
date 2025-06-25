@@ -263,17 +263,6 @@ def test_calendar_flow():
         }
     ]
     
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    print("=" * 80)
-    print("📅 Calendar Flow 테스트 (task_router → calendar_agent → answer_planner → answer_generator)")
-    print("⚠️  실제 API 요청이 발생할 수 있습니다!")
-    print("=" * 80)
-    
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     for i, test_case in enumerate(test_cases, 1):
         print(f"\n🧪 테스트 {i}: {test_case['description']}")
         print("-" * 60)
@@ -290,7 +279,7 @@ def test_calendar_flow():
             "next_node": None,
             "agent_messages": [],
             "router_messages": [],
-            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
+            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 하드코딩 실제 사용자 ID 추가
         }
         
         # 전체 시작 시간
@@ -410,6 +399,170 @@ def test_calendar_flow():
             else:
                 print("\n🎯 Step 3: CalSelector 건너뜀 (다른 플로우)")
             
+            # Step 3-1: query_refiner 실행 (라우팅이 query_refiner인 경우)
+            refiner_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'query_refiner':
+                print("\n🔍 Step 3-1: Query Refiner 실행")
+                step_start_time = time.time()
+                from routers.query_refiner import query_refiner
+                refiner_result = query_refiner(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = refiner_result.copy()
+                
+                print(f"✅ Query Refiner 결과:")
+                print(f"   - 다음 노드: {refiner_result.get('next_node', 'N/A')}")
+                print(f"   - 정제된 쿼리: {refiner_result.get('refined_query', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # query_refiner가 rag_retriever로 라우팅하는지 확인
+                if refiner_result.get('next_node') == 'rag_retriever':
+                    print("✅ Query Refiner: rag_retriever로 올바르게 라우팅됨")
+                else:
+                    print(f"⚠️  Query Refiner: 예상과 다름. 다음 노드: {refiner_result.get('next_node')}")
+            else:
+                print("\n🔍 Step 3-1: Query Refiner 건너뜀 (다른 플로우)")
+            
+            # Step 3-2: rag_retriever 실행 (라우팅이 rag_retriever인 경우)
+            rag_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'rag_retriever':
+                print("\n📚 Step 3-2: RAG Retriever 실행")
+                step_start_time = time.time()
+                from agents.rag_retriever import rag_retriever
+                rag_result = rag_retriever(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = rag_result.copy()
+                
+                print(f"✅ RAG Retriever 결과:")
+                print(f"   - 다음 노드: {rag_result.get('next_node', 'N/A')}")
+                print(f"   - RAG 결과: {rag_result.get('rag_result', 'N/A')[:100]}...")
+                print(f"   - 문서 개수: {rag_result.get('rag_docs', 'N/A')[:100]}...")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # rag_retriever가 rag_quality_critic로 라우팅하는지 확인
+                if rag_result.get('next_node') == 'rag_quality_critic':
+                    print("✅ RAG Retriever: rag_quality_critic로 올바르게 라우팅됨")
+                else:
+                    print(f"⚠️  RAG Retriever: 예상과 다름. 다음 노드: {rag_result.get('next_node')}")
+            else:
+                print("\n📚 Step 3-2: RAG Retriever 건너뜀 (다른 플로우)")
+            
+            # Step 3-3: rag_quality_critic 실행 (라우팅이 rag_quality_critic인 경우)
+            rag_critic_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'rag_quality_critic':
+                print("\n🔍 Step 3-3: RAG Quality Critic 실행")
+                step_start_time = time.time()
+                from routers.rag_quality_critic import rag_quality_critic
+                rag_critic_result = rag_quality_critic(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = rag_critic_result.copy()
+                
+                print(f"✅ RAG Quality Critic 결과:")
+                print(f"   - 다음 노드: {rag_critic_result.get('next_node', 'N/A')}")
+                print(f"   - 품질 점수: {rag_critic_result.get('quality_score', 'N/A')}")
+                print(f"   - 품질 평가: {rag_critic_result.get('quality_assessment', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # rag_quality_critic의 라우팅 결정 확인
+                next_node = rag_critic_result.get('next_node')
+                if next_node == 'websearch_agent':
+                    print("✅ RAG Quality Critic: websearch_agent로 라우팅 (웹 검색 필요)")
+                elif next_node == 'calendar_needed':
+                    print("✅ RAG Quality Critic: calendar_needed로 라우팅 (일정 처리 판단)")
+                elif next_node == 'rag_retriever':
+                    print("✅ RAG Quality Critic: rag_retriever로 라우팅 (RAG 재검색)")
+                else:
+                    print(f"⚠️  RAG Quality Critic: 예상과 다름. 다음 노드: {next_node}")
+            else:
+                print("\n🔍 Step 3-3: RAG Quality Critic 건너뜀 (다른 플로우)")
+            
+            # Step 3-4: calendar_needed 실행 (라우팅이 calendar_needed인 경우)
+            calendar_needed_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'calendar_needed':
+                print("\n📅 Step 3-4: Calendar Needed 실행")
+                step_start_time = time.time()
+                from routers.calendar_needed import calendar_needed
+                calendar_needed_result = calendar_needed(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = calendar_needed_result.copy()
+                
+                print(f"✅ Calendar Needed 결과:")
+                print(f"   - 다음 노드: {calendar_needed_result.get('next_node', 'N/A')}")
+                print(f"   - 판단 결과: {calendar_needed_result.get('router_messages', [{}])[-1].get('decision', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # calendar_needed의 라우팅 결정 확인
+                next_node = calendar_needed_result.get('next_node')
+                if next_node == 'calendar_agent':
+                    print("✅ Calendar Needed: calendar_agent로 라우팅 (일정 처리 필요)")
+                elif next_node == 'answer_planner':
+                    print("✅ Calendar Needed: answer_planner로 라우팅 (단순 정보 응답)")
+                else:
+                    print(f"⚠️  Calendar Needed: 예상과 다름. 다음 노드: {next_node}")
+            else:
+                print("\n📅 Step 3-4: Calendar Needed 건너뜀 (다른 플로우)")
+            
+            # Step 3-5: websearch_agent 실행 (라우팅이 websearch_agent인 경우)
+            websearch_agent_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'websearch_agent':
+                print("\n🔍 Step 3-6: Websearch Agent 실행")
+                step_start_time = time.time()
+                from agents.websearch_agent import websearch_agent
+                websearch_agent_result = websearch_agent(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = websearch_agent_result.copy()
+                
+                print(f"✅ Websearch Agent 결과:")
+                print(f"   - 다음 노드: {websearch_agent_result.get('next_node', 'N/A')}")
+                print(f"   - 검색 결과: {websearch_agent_result.get('search_result', 'N/A')[:100]}...")
+                print(f"   - 검색된 URL 수: {len(websearch_agent_result.get('search_urls', []))}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # websearch_agent가 websearch_critic으로 라우팅하는지 확인
+                if websearch_agent_result.get('next_node') == 'websearch_critic':
+                    print("✅ Websearch Agent: websearch_critic으로 올바르게 라우팅됨")
+                else:
+                    print(f"⚠️  Websearch Agent: 예상과 다름. 다음 노드: {websearch_agent_result.get('next_node')}")
+            else:
+                print("\n🔍 Step 3-6: Websearch Agent 건너뜀 (다른 플로우)")
+            
+            # 디버깅: 현재 상태의 next_node 확인
+            print(f"\n🔍 디버깅: 현재 next_node = {current_state.get('next_node', 'N/A')}")
+            
+            # Step 3-7: websearch_critic 실행 (라우팅이 websearch_critic인 경우)
+            websearch_critic_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'websearch_critic':
+                print("\n🌐 Step 3-7: Websearch Critic 실행")
+                step_start_time = time.time()
+                from routers.websearch_critic import websearch_critic
+                websearch_critic_result = websearch_critic(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = websearch_critic_result.copy()
+                
+                print(f"✅ Websearch Critic 결과:")
+                print(f"   - 다음 노드: {websearch_critic_result.get('next_node', 'N/A')}")
+                print(f"   - 웹 검색 필요성: {websearch_critic_result.get('websearch_needed', 'N/A')}")
+                print(f"   - 검색 쿼리: {websearch_critic_result.get('search_query', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # websearch_critic의 라우팅 결정 확인
+                next_node = websearch_critic_result.get('next_node')
+                if next_node == 'websearch_agent':
+                    print("✅ Websearch Critic: websearch_agent로 라우팅 (웹 검색 실행)")
+                elif next_node == 'calendar_needed':
+                    print("✅ Websearch Critic: calendar_needed로 라우팅 (일정 처리 판단)")
+                elif next_node == 'answer_generator':
+                    print("✅ Websearch Critic: answer_generator로 라우팅 (웹 검색 불필요)")
+                else:
+                    print(f"⚠️  Websearch Critic: 예상과 다름. 다음 노드: {next_node}")
+            else:
+                print(f"\n🌐 Step 3-7: Websearch Critic 건너뜀 (다른 플로우) - 현재 next_node: {current_state.get('next_node', 'N/A')}")
+            
             # Step 4: answer_planner 실행 (라우팅이 answer_planner인 경우)
             planner_result = None  # 변수 초기화
             if current_state.get('next_node') == 'answer_planner':
@@ -454,20 +607,6 @@ def test_calendar_flow():
             print(f"   - 에이전트 메시지: {len(answer_result.get('agent_messages', []))}개")
             print(f"   - 실행 시간: {step_duration:.2f}초")
             
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            # 디버깅: 현재 상태의 중요 필드들 확인
-            print(f"   - 현재 상태 디버깅:")
-            print(f"     - calendar_type: {current_state.get('calendar_type', 'N/A')}")
-            print(f"     - calendar_operation: {current_state.get('calendar_operation', 'N/A')}")
-            print(f"     - agent_task_type: {current_state.get('agent_task_type', 'N/A')}")
-            print(f"     - agent_task_operation: {current_state.get('agent_task_operation', 'N/A')}")
-            print(f"     - selected_item_id: {current_state.get('selected_item_id', 'N/A')}")
-            
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             # API 요청 결과 확인
             crud_result = answer_result.get('crud_result')
             if crud_result:
@@ -682,6 +821,170 @@ def test_interactive_calendar_flow():
             else:
                 print("\n🎯 Step 3: CalSelector 건너뜀 (다른 플로우)")
             
+            # Step 3-1: query_refiner 실행 (라우팅이 query_refiner인 경우)
+            refiner_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'query_refiner':
+                print("\n🔍 Step 3-1: Query Refiner 실행")
+                step_start_time = time.time()
+                from routers.query_refiner import query_refiner
+                refiner_result = query_refiner(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = refiner_result.copy()
+                
+                print(f"✅ Query Refiner 결과:")
+                print(f"   - 다음 노드: {refiner_result.get('next_node', 'N/A')}")
+                print(f"   - 정제된 쿼리: {refiner_result.get('refined_query', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # query_refiner가 rag_retriever로 라우팅하는지 확인
+                if refiner_result.get('next_node') == 'rag_retriever':
+                    print("✅ Query Refiner: rag_retriever로 올바르게 라우팅됨")
+                else:
+                    print(f"⚠️  Query Refiner: 예상과 다름. 다음 노드: {refiner_result.get('next_node')}")
+            else:
+                print("\n🔍 Step 3-1: Query Refiner 건너뜀 (다른 플로우)")
+            
+            # Step 3-2: rag_retriever 실행 (라우팅이 rag_retriever인 경우)
+            rag_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'rag_retriever':
+                print("\n📚 Step 3-2: RAG Retriever 실행")
+                step_start_time = time.time()
+                from agents.rag_retriever import rag_retriever
+                rag_result = rag_retriever(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = rag_result.copy()
+                
+                print(f"✅ RAG Retriever 결과:")
+                print(f"   - 다음 노드: {rag_result.get('next_node', 'N/A')}")
+                print(f"   - RAG 결과: {rag_result.get('rag_result', 'N/A')[:100]}...")
+                print(f"   - 문서 개수: {rag_result.get('rag_docs', 'N/A')[:100]}...")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # rag_retriever가 rag_quality_critic로 라우팅하는지 확인
+                if rag_result.get('next_node') == 'rag_quality_critic':
+                    print("✅ RAG Retriever: rag_quality_critic로 올바르게 라우팅됨")
+                else:
+                    print(f"⚠️  RAG Retriever: 예상과 다름. 다음 노드: {rag_result.get('next_node')}")
+            else:
+                print("\n📚 Step 3-2: RAG Retriever 건너뜀 (다른 플로우)")
+            
+            # Step 3-3: rag_quality_critic 실행 (라우팅이 rag_quality_critic인 경우)
+            rag_critic_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'rag_quality_critic':
+                print("\n🔍 Step 3-3: RAG Quality Critic 실행")
+                step_start_time = time.time()
+                from routers.rag_quality_critic import rag_quality_critic
+                rag_critic_result = rag_quality_critic(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = rag_critic_result.copy()
+                
+                print(f"✅ RAG Quality Critic 결과:")
+                print(f"   - 다음 노드: {rag_critic_result.get('next_node', 'N/A')}")
+                print(f"   - 품질 점수: {rag_critic_result.get('quality_score', 'N/A')}")
+                print(f"   - 품질 평가: {rag_critic_result.get('quality_assessment', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # rag_quality_critic의 라우팅 결정 확인
+                next_node = rag_critic_result.get('next_node')
+                if next_node == 'websearch_agent':
+                    print("✅ RAG Quality Critic: websearch_agent로 라우팅 (웹 검색 필요)")
+                elif next_node == 'calendar_needed':
+                    print("✅ RAG Quality Critic: calendar_needed로 라우팅 (일정 처리 판단)")
+                elif next_node == 'rag_retriever':
+                    print("✅ RAG Quality Critic: rag_retriever로 라우팅 (RAG 재검색)")
+                else:
+                    print(f"⚠️  RAG Quality Critic: 예상과 다름. 다음 노드: {next_node}")
+            else:
+                print("\n🔍 Step 3-3: RAG Quality Critic 건너뜀 (다른 플로우)")
+            
+            # Step 3-4: calendar_needed 실행 (라우팅이 calendar_needed인 경우)
+            calendar_needed_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'calendar_needed':
+                print("\n📅 Step 3-4: Calendar Needed 실행")
+                step_start_time = time.time()
+                from routers.calendar_needed import calendar_needed
+                calendar_needed_result = calendar_needed(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = calendar_needed_result.copy()
+                
+                print(f"✅ Calendar Needed 결과:")
+                print(f"   - 다음 노드: {calendar_needed_result.get('next_node', 'N/A')}")
+                print(f"   - 판단 결과: {calendar_needed_result.get('router_messages', [{}])[-1].get('decision', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # calendar_needed의 라우팅 결정 확인
+                next_node = calendar_needed_result.get('next_node')
+                if next_node == 'calendar_agent':
+                    print("✅ Calendar Needed: calendar_agent로 라우팅 (일정 처리 필요)")
+                elif next_node == 'answer_planner':
+                    print("✅ Calendar Needed: answer_planner로 라우팅 (단순 정보 응답)")
+                else:
+                    print(f"⚠️  Calendar Needed: 예상과 다름. 다음 노드: {next_node}")
+            else:
+                print("\n📅 Step 3-4: Calendar Needed 건너뜀 (다른 플로우)")
+            
+            # Step 3-5: websearch_agent 실행 (라우팅이 websearch_agent인 경우)
+            websearch_agent_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'websearch_agent':
+                print("\n🔍 Step 3-6: Websearch Agent 실행")
+                step_start_time = time.time()
+                from agents.websearch_agent import websearch_agent
+                websearch_agent_result = websearch_agent(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = websearch_agent_result.copy()
+                
+                print(f"✅ Websearch Agent 결과:")
+                print(f"   - 다음 노드: {websearch_agent_result.get('next_node', 'N/A')}")
+                print(f"   - 검색 결과: {websearch_agent_result.get('search_result', 'N/A')[:100]}...")
+                print(f"   - 검색된 URL 수: {len(websearch_agent_result.get('search_urls', []))}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # websearch_agent가 websearch_critic으로 라우팅하는지 확인
+                if websearch_agent_result.get('next_node') == 'websearch_critic':
+                    print("✅ Websearch Agent: websearch_critic으로 올바르게 라우팅됨")
+                else:
+                    print(f"⚠️  Websearch Agent: 예상과 다름. 다음 노드: {websearch_agent_result.get('next_node')}")
+            else:
+                print("\n🔍 Step 3-6: Websearch Agent 건너뜀 (다른 플로우)")
+            
+            # 디버깅: 현재 상태의 next_node 확인
+            print(f"\n🔍 디버깅: 현재 next_node = {current_state.get('next_node', 'N/A')}")
+            
+            # Step 3-7: websearch_critic 실행 (라우팅이 websearch_critic인 경우)
+            websearch_critic_result = None  # 변수 초기화
+            if current_state.get('next_node') == 'websearch_critic':
+                print("\n🌐 Step 3-7: Websearch Critic 실행")
+                step_start_time = time.time()
+                from routers.websearch_critic import websearch_critic
+                websearch_critic_result = websearch_critic(current_state.copy())
+                step_end_time = time.time()
+                step_duration = step_end_time - step_start_time
+                current_state = websearch_critic_result.copy()
+                
+                print(f"✅ Websearch Critic 결과:")
+                print(f"   - 다음 노드: {websearch_critic_result.get('next_node', 'N/A')}")
+                print(f"   - 웹 검색 필요성: {websearch_critic_result.get('websearch_needed', 'N/A')}")
+                print(f"   - 검색 쿼리: {websearch_critic_result.get('search_query', 'N/A')}")
+                print(f"   - 실행 시간: {step_duration:.2f}초")
+                
+                # websearch_critic의 라우팅 결정 확인
+                next_node = websearch_critic_result.get('next_node')
+                if next_node == 'websearch_agent':
+                    print("✅ Websearch Critic: websearch_agent로 라우팅 (웹 검색 실행)")
+                elif next_node == 'calendar_needed':
+                    print("✅ Websearch Critic: calendar_needed로 라우팅 (일정 처리 판단)")
+                elif next_node == 'answer_generator':
+                    print("✅ Websearch Critic: answer_generator로 라우팅 (웹 검색 불필요)")
+                else:
+                    print(f"⚠️  Websearch Critic: 예상과 다름. 다음 노드: {next_node}")
+            else:
+                print(f"\n🌐 Step 3-7: Websearch Critic 건너뜀 (다른 플로우) - 현재 next_node: {current_state.get('next_node', 'N/A')}")
+            
             # Step 4: answer_planner 실행 (라우팅이 answer_planner인 경우)
             planner_result = None  # 변수 초기화
             if current_state.get('next_node') == 'answer_planner':
@@ -729,16 +1032,8 @@ def test_interactive_calendar_flow():
             crud_result = answer_result.get('crud_result')
             if crud_result:
                 print(f"   🎯 API 요청 결과: {crud_result}")
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
             else:
                 print("   ⚠️  API 요청 결과가 없습니다.")
->>>>>>> Stashed changes
-=======
-            else:
-                print("   ⚠️  API 요청 결과가 없습니다.")
->>>>>>> Stashed changes
             
             # 생성된 에이전트 태스크/이벤트 확인
             if answer_result.get('created_agent_task'):
@@ -752,39 +1047,6 @@ def test_interactive_calendar_flow():
             total_duration = total_end_time - total_start_time
             print(f"\n⏱️  총 실행 시간: {total_duration:.2f}초")
             
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            # 실제 실행된 플로우 표시
-            actual_flow = []
-            if task_result.get('next_node'):
-                actual_flow.append("task_router")
-                if task_result.get('next_node') == 'calendar_agent' and calendar_result:
-                    actual_flow.append("calendar_agent")
-                    if calendar_result.get('next_node') == 'calselector' and selector_result:
-                        actual_flow.append("calselector")
-                        if selector_result.get('next_node') == 'answer_generator':
-                            actual_flow.append("answer_generator")
-                        else:
-                            actual_flow.append(f"answer_generator(직접)")
-                    elif calendar_result.get('next_node') == 'answer_planner' and planner_result:
-                        actual_flow.append("answer_planner")
-                        if planner_result.get('next_node') == 'answer_generator':
-                            actual_flow.append("answer_generator")
-                        else:
-                            actual_flow.append(f"answer_generator(직접)")
-                    else:
-                        actual_flow.append(f"answer_generator(직접)")
-                else:
-                    actual_flow.append(f"answer_generator(직접)")
-            else:
-                actual_flow.append("answer_generator(직접)")
-            
-            print(f"🔄 실제 플로우: {' → '.join(actual_flow)}")
-            
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
             # API 요청 여부 표시
             if crud_result:
                 print(f"🎯 API 요청: ✅ 발생 (결과: {crud_result})")
@@ -801,14 +1063,154 @@ def test_interactive_calendar_flow():
             import traceback
             traceback.print_exc()
 
+def test_direct_api_calls():
+    """직접 API 호출을 테스트합니다."""
+    
+    print("=" * 80)
+    print("🔗 직접 API 호출 테스트")
+    print("⚠️  실제 API 요청이 발생합니다!")
+    print("=" * 80)
+    
+    import httpx
+    import asyncio
+    
+    # API 설정
+    base_url = "http://52.79.95.55:8000"
+    headers = {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NjAxNTcsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.bqwy290hHip6TWJPSEY6rK6tHTQwLyg5KPjeascevfU",
+        "Content-Type": "application/json",
+        "accept": "application/json"
+    }
+    
+    async def test_api_calls():
+        """비동기 API 호출 테스트"""
+        
+        # 1. 이벤트 생성 테스트
+        print("\n📅 1. 이벤트 생성 테스트")
+        event_data = {
+            "title": "API 테스트 이벤트",
+            "start_at": "2025-06-26T14:00:00+09:00",
+            "end_at": "2025-06-26T15:00:00+09:00",
+            "timezone": "Asia/Seoul",
+            "description": "직접 API 호출로 생성한 테스트 이벤트"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{base_url}/api/v1/calendar/events",
+                    json=event_data,
+                    headers=headers,
+                    timeout=30.0
+                )
+                
+                print(f"   - 상태 코드: {response.status_code}")
+                if response.status_code == 200:
+                    result = response.json()
+                    event_id = result.get('id')
+                    print(f"   ✅ 이벤트 생성 성공: {event_id}")
+                    
+                    # 생성된 이벤트 삭제 테스트
+                    print(f"\n🗑️ 이벤트 삭제 테스트 (ID: {event_id})")
+                    delete_response = await client.delete(
+                        f"{base_url}/api/v1/calendar/events/{event_id}",
+                        headers=headers,
+                        timeout=30.0
+                    )
+                    
+                    print(f"   - 삭제 상태 코드: {delete_response.status_code}")
+                    if delete_response.status_code == 200:
+                        print(f"   ✅ 이벤트 삭제 성공")
+                    else:
+                        print(f"   ❌ 이벤트 삭제 실패: {delete_response.text}")
+                else:
+                    print(f"   ❌ 이벤트 생성 실패: {response.text}")
+        except Exception as e:
+            print(f"   ❌ 이벤트 생성 중 오류: {str(e)}")
+        
+        # 2. 할일 생성 테스트
+        print("\n📋 2. 할일 생성 테스트")
+        task_data = {
+            "title": "API 테스트 할일",
+            "description": "직접 API 호출로 생성한 테스트 할일",
+            "status": "pending"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{base_url}/api/v1/agent/tasks",
+                    json=task_data,
+                    headers=headers,
+                    timeout=30.0
+                )
+                
+                print(f"   - 상태 코드: {response.status_code}")
+                if response.status_code == 200:
+                    result = response.json()
+                    task_id = result.get('task_id')
+                    print(f"   ✅ 할일 생성 성공: {task_id}")
+                    
+                    # 생성된 할일 삭제 테스트
+                    print(f"\n🗑️ 할일 삭제 테스트 (ID: {task_id})")
+                    delete_response = await client.delete(
+                        f"{base_url}/api/v1/agent/tasks/{task_id}",
+                        headers=headers,
+                        timeout=30.0
+                    )
+                    
+                    print(f"   - 삭제 상태 코드: {delete_response.status_code}")
+                    if delete_response.status_code == 200:
+                        print(f"   ✅ 할일 삭제 성공")
+                    else:
+                        print(f"   ❌ 할일 삭제 실패: {delete_response.text}")
+                else:
+                    print(f"   ❌ 할일 생성 실패: {response.text}")
+        except Exception as e:
+            print(f"   ❌ 할일 생성 중 오류: {str(e)}")
+        
+        # 3. 전체 조회 테스트
+        print("\n📊 3. 전체 조회 테스트")
+        user_id = "542c2e7e-256a-4e15-abdb-f38310e94007"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{base_url}/api/v1/calendar/{user_id}/all",
+                    headers=headers,
+                    timeout=30.0
+                )
+                
+                print(f"   - 상태 코드: {response.status_code}")
+                if response.status_code == 200:
+                    result = response.json()
+                    events = [item for item in result if 'start_at' in item and 'end_at' in item]
+                    tasks = [item for item in result if 'task_id' in item]
+                    
+                    print(f"   ✅ 조회 성공")
+                    print(f"   - 총 항목: {len(result)}개")
+                    print(f"   - 이벤트: {len(events)}개")
+                    print(f"   - 할일: {len(tasks)}개")
+                    
+                    if result:
+                        print(f"   - 첫 번째 항목: {result[0].get('title', 'N/A')}")
+                else:
+                    print(f"   ❌ 조회 실패: {response.text}")
+        except Exception as e:
+            print(f"   ❌ 조회 중 오류: {str(e)}")
+    
+    # 비동기 함수 실행
+    asyncio.run(test_api_calls())
+
 if __name__ == "__main__":
     print("🎉 Calendar Flow 테스트를 시작합니다! 🎉")
     print("📅 다양한 일정 시나리오를 테스트해보세요!")
     print("1. 🚀 자동 테스트 (미리 정의된 케이스들)")
     print("2. 💬 대화형 테스트 (사용자 입력)")
     print("3. 🤖 Agent Task CRUD 테스트")
+    print("4. 🔗 직접 API 호출 테스트")
     
-    choice = input("\n선택하세요 (1, 2, 또는 3): ").strip()
+    choice = input("\n선택하세요 (1, 2, 3, 또는 4): ").strip()
     
     if choice == "1":
         print("\n🚀 자동 테스트를 시작합니다!")
@@ -819,6 +1221,9 @@ if __name__ == "__main__":
     elif choice == "3":
         print("\n🤖 Agent Task CRUD 테스트를 시작합니다!")
         test_agent_task_flow()
+    elif choice == "4":
+        print("\n🔗 직접 API 호출 테스트를 시작합니다!")
+        test_direct_api_calls()
     else:
         print("❌ 잘못된 선택입니다. 자동 테스트를 실행합니다.")
         test_calendar_flow() 

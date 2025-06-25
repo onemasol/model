@@ -54,12 +54,12 @@ def create_api_headers(access_token: Optional[str] = None) -> Dict[str, str]:
         API 요청 헤더 딕셔너리
     """
     headers = { # 하드코딩함 Access Token
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NjAxNTcsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.bqwy290hHip6TWJPSEY6rK6tHTQwLyg5KPjeascevfU",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NjQ0OTYsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.0-5CgQ4mHZGeSywW8z5NKQaE9YYSzyiH2FJpeBWdsgo",
         "Content-Type": "application/json",
         "accept": "application/json"
     }
     
-    # 실제 access_token이 있으면 교체
+    # 1. 매개변수로 전달된 access_token 사용
     if access_token:
         headers["Authorization"] = f"Bearer {access_token}"
     
@@ -433,6 +433,7 @@ async def handle_task_create(state: Dict, base_url: str, headers: Dict) -> Dict:
     task_data = {
         "title": state.get("title", ""),
         "description": state.get("initial_input", ""),
+        "due_at": state.get("due_at"),
         "status": "pending"
     }
     
@@ -486,11 +487,12 @@ async def handle_task_read(state: Dict, base_url: str, headers: Dict) -> Dict:
     # 특정 할일 조회
     if state.get("selected_item_id"):
         api_url = f"{base_url}/api/v1/agent/tasks/{state['selected_item_id']}"
+        print(f"🌐 특정 할일 조회 API URL: {api_url}")
+        print(f"🔍 조회할 할일 ID: {state['selected_item_id']}")
     else:
         # 전체 할일 조회
         api_url = f"{base_url}/api/v1/agent/tasks"
-    
-    print(f"🌐 할일 조회 API URL: {api_url}")
+        print(f"🌐 전체 할일 조회 API URL: {api_url}")
     
     try:
         async with httpx.AsyncClient() as client:
@@ -498,11 +500,59 @@ async def handle_task_read(state: Dict, base_url: str, headers: Dict) -> Dict:
             response = await client.get(api_url, headers=headers, params=query_params)
             
             print(f"📊 할일 조회 응답 상태 코드: {response.status_code}")
+            print(f"📄 할일 조회 응답 헤더: {dict(response.headers)}")
             
             if response.status_code == 200:
                 result = response.json()
-                state["crud_result"] = f"할일 조회 완료: {len(result) if isinstance(result, list) else 1}개 항목"
-                print(f"✅ 할일 조회 완료: {len(result) if isinstance(result, list) else 1}개 항목")
+                
+                if state.get("selected_item_id"):
+                    # 특정 할일 조회 결과
+                    print(f"✅ 특정 할일 조회 완료")
+                    print(f"📋 할일 상세 정보:")
+                    print(f"   - 제목: {result.get('title', 'N/A')}")
+                    print(f"   - 설명: {result.get('description', 'N/A')}")
+                    print(f"   - 상태: {result.get('status', 'N/A')}")
+                    print(f"   - 할일 ID: {result.get('task_id', 'N/A')}")
+                    print(f"   - 사용자 ID: {result.get('user_id', 'N/A')}")
+                    print(f"   - 생성 시간: {result.get('created_at', 'N/A')}")
+                    print(f"   - 수정 시간: {result.get('updated_at', 'N/A')}")
+                    
+                    # 사용된 에이전트 정보 출력
+                    used_agents = result.get('used_agents', [])
+                    if used_agents:
+                        print(f"   - 사용된 에이전트: {len(used_agents)}개")
+                        for i, agent in enumerate(used_agents, 1):
+                            print(f"     {i}. {agent.get('agent_name', 'N/A')} - {agent.get('operation', 'N/A')}")
+                    
+                    state["crud_result"] = f"할일 조회 완료: {result.get('title', 'N/A')} (ID: {result.get('task_id', 'N/A')})"
+                else:
+                    # 전체 할일 조회 결과
+                    if isinstance(result, list):
+                        print(f"✅ 전체 할일 조회 완료: {len(result)}개 항목")
+                        if result:
+                            print(f"📋 첫 번째 할일 정보:")
+                            first_task = result[0]
+                            print(f"   - 제목: {first_task.get('title', 'N/A')}")
+                            print(f"   - 상태: {first_task.get('status', 'N/A')}")
+                            print(f"   - 할일 ID: {first_task.get('task_id', 'N/A')}")
+                        
+                        # 할일 목록 요약
+                        status_counts: Dict[str, int] = {}
+                        for task in result:
+                            status = task.get('status', 'unknown')
+                            status_counts[status] = status_counts.get(status, 0) + 1
+                        
+                        print(f"📊 상태별 할일 개수:")
+                        for status, count in status_counts.items():
+                            print(f"   - {status}: {count}개")
+                    else:
+                        print(f"✅ 할일 조회 완료: 1개 항목")
+                    
+                    state["crud_result"] = f"할일 조회 완료: {len(result) if isinstance(result, list) else 1}개 항목"
+            elif response.status_code == 404:
+                error_msg = f"할일을 찾을 수 없습니다. (ID: {state.get('selected_item_id', 'N/A')})"
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
             else:
                 error_msg = f"할일 조회 실패: {response.status_code} - {response.text}"
                 state["crud_result"] = error_msg

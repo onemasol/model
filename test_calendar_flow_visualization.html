@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test_calendar_flow.py 연결 구조 시각화</title>
+    <script src="https://cdn.jsdelivr.net/npm/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+        }
+        .section h2 {
+            color: #333;
+            margin-top: 0;
+            font-size: 1.8em;
+        }
+        .section h3 {
+            color: #555;
+            margin-top: 25px;
+            font-size: 1.4em;
+        }
+        .flow-diagram {
+            height: 600px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin: 20px 0;
+            background: white;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .import-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .import-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .import-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .import-item ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .import-item li {
+            margin: 5px 0;
+            color: #666;
+        }
+        .test-functions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .test-function {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .test-function h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 1.3em;
+        }
+        .test-function p {
+            margin: 10px 0;
+            color: #666;
+            line-height: 1.6;
+        }
+        .flow-steps {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .flow-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .flow-steps li {
+            margin: 8px 0;
+            color: #555;
+        }
+        .api-section {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .api-section h3 {
+            margin-top: 0;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 test_calendar_flow.py 연결 구조 시각화</h1>
+            <p>캘린더 플로우 테스트 파일의 모듈 연결 관계 및 데이터 흐름 분석</p>
+        </div>
+        
+        <div class="content">
+            <!-- 1. 전체 구조 개요 -->
+            <div class="section">
+                <h2>🎯 전체 구조 개요</h2>
+                <p>이 테스트 파일은 캘린더 관련 기능을 테스트하는 종합적인 테스트 스위트로, 다음과 같은 주요 구성 요소들을 포함합니다:</p>
+                
+                <div class="test-functions">
+                    <div class="test-function">
+                        <h4>🤖 test_agent_task_flow()</h4>
+                        <p>Agent Task CRUD 작업을 테스트하는 함수</p>
+                        <div class="flow-steps">
+                            <ol>
+                                <li>Agent Task 생성/조회/수정/삭제 테스트</li>
+                                <li>answer_generator 직접 호출</li>
+                                <li>API 요청 결과 검증</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="test-function">
+                        <h4>📅 test_calendar_flow()</h4>
+                        <p>표준 캘린더 플로우를 테스트하는 함수</p>
+                        <div class="flow-steps">
+                            <ol>
+                                <li>task_router → calendar_agent → answer_planner → answer_generator</li>
+                                <li>다양한 일정 시나리오 테스트</li>
+                                <li>플로우 검증 및 성능 측정</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="test-function">
+                        <h4>💬 test_interactive_calendar_flow()</h4>
+                        <p>대화형 캘린더 플로우 테스트</p>
+                        <div class="flow-steps">
+                            <ol>
+                                <li>사용자 입력 받기</li>
+                                <li>실시간 플로우 실행</li>
+                                <li>단계별 결과 출력</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="test-function">
+                        <h4>🔗 test_direct_api_calls()</h4>
+                        <p>직접 API 호출 테스트</p>
+                        <div class="flow-steps">
+                            <ol>
+                                <li>이벤트 생성/삭제 테스트</li>
+                                <li>할일 생성/삭제 테스트</li>
+                                <li>전체 조회 테스트</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 모듈 연결 관계 -->
+            <div class="section">
+                <h2>🔗 모듈 연결 관계</h2>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #667eea;"></div>
+                        <span>Routers (라우팅 로직)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #764ba2;"></div>
+                        <span>Agents (에이전트 로직)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f093fb;"></div>
+                        <span>Models (데이터 모델)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6b6b;"></div>
+                        <span>External APIs (외부 API)</span>
+                    </div>
+                </div>
+
+                <div class="flow-diagram" id="moduleNetwork"></div>
+            </div>
+
+            <!-- 3. Import 모듈 목록 -->
+            <div class="section">
+                <h2>📦 Import 모듈 목록</h2>
+                
+                <div class="import-list">
+                    <div class="import-item">
+                        <h4>🔧 Standard Library</h4>
+                        <ul>
+                            <li>sys - 시스템 경로 설정</li>
+                            <li>os - 운영체제 인터페이스</li>
+                            <li>json - JSON 데이터 처리</li>
+                            <li>time - 시간 측정</li>
+                            <li>datetime - 날짜/시간 처리</li>
+                            <li>traceback - 오류 추적</li>
+                            <li>asyncio - 비동기 프로그래밍</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="import-item">
+                        <h4>🎯 Routers</h4>
+                        <ul>
+                            <li>task_router - 작업 라우팅</li>
+                            <li>query_refiner - 쿼리 정제</li>
+                            <li>rag_quality_critic - RAG 품질 평가</li>
+                            <li>calendar_needed - 캘린더 필요성 판단</li>
+                            <li>websearch_critic - 웹검색 필요성 판단</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="import-item">
+                        <h4>🤖 Agents</h4>
+                        <ul>
+                            <li>calendar_agent - 캘린더 처리</li>
+                            <li>answer_planner - 답변 계획</li>
+                            <li>answer_generator - 답변 생성</li>
+                            <li>calselector - 캘린더 선택</li>
+                            <li>rag_retriever - RAG 검색</li>
+                            <li>websearch_agent - 웹검색</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="import-item">
+                        <h4>📊 Models</h4>
+                        <ul>
+                            <li>AgentState - 에이전트 상태 모델</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="import-item">
+                        <h4>🌐 External Libraries</h4>
+                        <ul>
+                            <li>httpx - HTTP 클라이언트 (비동기)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 데이터 플로우 -->
+            <div class="section">
+                <h2>🔄 데이터 플로우</h2>
+                
+                <h3>📅 표준 캘린더 플로우</h3>
+                <div class="code-block">
+1. task_router (입력 분석 및 라우팅)
+   ↓
+2. calendar_agent (캘린더 작업 처리)
+   ↓
+3. answer_planner (답변 계획 수립)
+   ↓
+4. answer_generator (최종 답변 생성 + API 호출)
+                </div>
+
+                <h3>🔍 확장 플로우 (조건부)</h3>
+                <div class="code-block">
+1. task_router
+   ↓
+2. query_refiner (쿼리 정제)
+   ↓
+3. rag_retriever (RAG 검색)
+   ↓
+4. rag_quality_critic (품질 평가)
+   ↓
+5. calendar_needed (캘린더 필요성 판단)
+   ↓
+6. calendar_agent (캘린더 처리)
+   ↓
+7. answer_planner
+   ↓
+8. answer_generator
+                </div>
+
+                <h3>🌐 웹검색 플로우</h3>
+                <div class="code-block">
+1. task_router
+   ↓
+2. websearch_critic (웹검색 필요성 판단)
+   ↓
+3. websearch_agent (웹검색 실행)
+   ↓
+4. answer_planner
+   ↓
+5. answer_generator
+                </div>
+            </div>
+
+            <!-- 5. API 연결 -->
+            <div class="api-section">
+                <h3>🔗 외부 API 연결</h3>
+                <p><strong>Base URL:</strong> http://52.79.95.55:8000</p>
+                <p><strong>Authentication:</strong> Bearer Token</p>
+                
+                <h4>📅 캘린더 API 엔드포인트</h4>
+                <ul>
+                    <li>POST /api/v1/calendar/events - 이벤트 생성</li>
+                    <li>DELETE /api/v1/calendar/events/{id} - 이벤트 삭제</li>
+                    <li>GET /api/v1/calendar/{user_id}/all - 전체 조회</li>
+                </ul>
+                
+                <h4>📋 Agent Task API 엔드포인트</h4>
+                <ul>
+                    <li>POST /api/v1/agent/tasks - 할일 생성</li>
+                    <li>DELETE /api/v1/agent/tasks/{id} - 할일 삭제</li>
+                </ul>
+            </div>
+
+            <!-- 6. 테스트 시나리오 -->
+            <div class="section">
+                <h2>🧪 테스트 시나리오</h2>
+                
+                <h3>📅 일정 등록 시나리오 (15개)</h3>
+                <div class="code-block">
+• 정확한 시간 일정 생성 (분 단위)
+• 늦은 밤 일정 생성
+• 장기 프로젝트 일정
+• 반복 일정 생성
+• 긴급 의료 일정
+• 학업 관련 할일
+• 비즈니스 미팅 (시간대 고려)
+• 특별한 이벤트
+• 운동 일정
+• 식사 일정
+• 여행 일정
+• 문화생활
+• 집안일
+• 독서 시간
+• 음악 연습
+                </div>
+
+                <h3>🤖 Agent Task CRUD 시나리오 (5개)</h3>
+                <div class="code-block">
+• 에이전트 태스크 생성
+• 에이전트 태스크 조회
+• 에이전트 태스크 수정
+• 에이전트 태스크 삭제
+• 복잡한 에이전트 태스크 생성
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 네트워크 시각화
+        function createNetwork() {
+            const container = document.getElementById('moduleNetwork');
+            
+            // 노드 정의
+            const nodes = new vis.DataSet([
+                // 메인 테스트 파일
+                { id: 'test_file', label: 'test_calendar_flow.py', group: 'test', shape: 'box', size: 30, font: { size: 16, bold: true } },
+                
+                // Routers
+                { id: 'task_router', label: 'task_router', group: 'router', shape: 'diamond', size: 25 },
+                { id: 'query_refiner', label: 'query_refiner', group: 'router', shape: 'diamond', size: 20 },
+                { id: 'rag_quality_critic', label: 'rag_quality_critic', group: 'router', shape: 'diamond', size: 20 },
+                { id: 'calendar_needed', label: 'calendar_needed', group: 'router', shape: 'diamond', size: 20 },
+                { id: 'websearch_critic', label: 'websearch_critic', group: 'router', shape: 'diamond', size: 20 },
+                
+                // Agents
+                { id: 'calendar_agent', label: 'calendar_agent', group: 'agent', shape: 'circle', size: 25 },
+                { id: 'answer_planner', label: 'answer_planner', group: 'agent', shape: 'circle', size: 25 },
+                { id: 'answer_generator', label: 'answer_generator', group: 'agent', shape: 'circle', size: 30 },
+                { id: 'calselector', label: 'calselector', group: 'agent', shape: 'circle', size: 20 },
+                { id: 'rag_retriever', label: 'rag_retriever', group: 'agent', shape: 'circle', size: 20 },
+                { id: 'websearch_agent', label: 'websearch_agent', group: 'agent', shape: 'circle', size: 20 },
+                
+                // Models
+                { id: 'agent_state', label: 'AgentState', group: 'model', shape: 'box', size: 20 },
+                
+                // External APIs
+                { id: 'calendar_api', label: 'Calendar API', group: 'api', shape: 'database', size: 25 },
+                { id: 'task_api', label: 'Task API', group: 'api', shape: 'database', size: 25 },
+                
+                // Test Functions
+                { id: 'test_agent_task', label: 'test_agent_task_flow()', group: 'test_func', shape: 'box', size: 20 },
+                { id: 'test_calendar', label: 'test_calendar_flow()', group: 'test_func', shape: 'box', size: 20 },
+                { id: 'test_interactive', label: 'test_interactive_calendar_flow()', group: 'test_func', shape: 'box', size: 20 },
+                { id: 'test_direct_api', label: 'test_direct_api_calls()', group: 'test_func', shape: 'box', size: 20 }
+            ]);
+            
+            // 엣지 정의
+            const edges = new vis.DataSet([
+                // 테스트 파일에서 각 모듈로의 연결
+                { from: 'test_file', to: 'task_router', arrows: 'to', color: { color: '#667eea' } },
+                { from: 'test_file', to: 'calendar_agent', arrows: 'to', color: { color: '#764ba2' } },
+                { from: 'test_file', to: 'answer_planner', arrows: 'to', color: { color: '#764ba2' } },
+                { from: 'test_file', to: 'answer_generator', arrows: 'to', color: { color: '#764ba2' } },
+                { from: 'test_file', to: 'calselector', arrows: 'to', color: { color: '#764ba2' } },
+                { from: 'test_file', to: 'agent_state', arrows: 'to', color: { color: '#f093fb' } },
+                
+                // 조건부 import 연결
+                { from: 'test_file', to: 'query_refiner', arrows: 'to', color: { color: '#667eea', dashes: true } },
+                { from: 'test_file', to: 'rag_retriever', arrows: 'to', color: { color: '#764ba2', dashes: true } },
+                { from: 'test_file', to: 'rag_quality_critic', arrows: 'to', color: { color: '#667eea', dashes: true } },
+                { from: 'test_file', to: 'calendar_needed', arrows: 'to', color: { color: '#667eea', dashes: true } },
+                { from: 'test_file', to: 'websearch_agent', arrows: 'to', color: { color: '#764ba2', dashes: true } },
+                { from: 'test_file', to: 'websearch_critic', arrows: 'to', color: { color: '#667eea', dashes: true } },
+                
+                // 표준 플로우
+                { from: 'task_router', to: 'calendar_agent', arrows: 'to', color: { color: '#28a745' } },
+                { from: 'calendar_agent', to: 'answer_planner', arrows: 'to', color: { color: '#28a745' } },
+                { from: 'answer_planner', to: 'answer_generator', arrows: 'to', color: { color: '#28a745' } },
+                
+                // 확장 플로우
+                { from: 'task_router', to: 'query_refiner', arrows: 'to', color: { color: '#ffc107' } },
+                { from: 'query_refiner', to: 'rag_retriever', arrows: 'to', color: { color: '#ffc107' } },
+                { from: 'rag_retriever', to: 'rag_quality_critic', arrows: 'to', color: { color: '#ffc107' } },
+                { from: 'rag_quality_critic', to: 'calendar_needed', arrows: 'to', color: { color: '#ffc107' } },
+                { from: 'calendar_needed', to: 'calendar_agent', arrows: 'to', color: { color: '#ffc107' } },
+                
+                // 웹검색 플로우
+                { from: 'task_router', to: 'websearch_critic', arrows: 'to', color: { color: '#dc3545' } },
+                { from: 'websearch_critic', to: 'websearch_agent', arrows: 'to', color: { color: '#dc3545' } },
+                { from: 'websearch_agent', to: 'answer_planner', arrows: 'to', color: { color: '#dc3545' } },
+                
+                // API 연결
+                { from: 'answer_generator', to: 'calendar_api', arrows: 'to', color: { color: '#ff6b6b' } },
+                { from: 'answer_generator', to: 'task_api', arrows: 'to', color: { color: '#ff6b6b' } },
+                
+                // 테스트 함수 연결
+                { from: 'test_agent_task', to: 'answer_generator', arrows: 'to', color: { color: '#6f42c1' } },
+                { from: 'test_calendar', to: 'task_router', arrows: 'to', color: { color: '#6f42c1' } },
+                { from: 'test_interactive', to: 'task_router', arrows: 'to', color: { color: '#6f42c1' } },
+                { from: 'test_direct_api', to: 'calendar_api', arrows: 'to', color: { color: '#6f42c1' } },
+                { from: 'test_direct_api', to: 'task_api', arrows: 'to', color: { color: '#6f42c1' } }
+            ]);
+            
+            // 네트워크 옵션
+            const options = {
+                nodes: {
+                    borderWidth: 2,
+                    shadow: true,
+                    font: {
+                        size: 14,
+                        face: 'Arial'
+                    }
+                },
+                edges: {
+                    width: 2,
+                    shadow: true,
+                    smooth: {
+                        type: 'continuous'
+                    }
+                },
+                groups: {
+                    test: { color: { background: '#e3f2fd', border: '#2196f3' } },
+                    router: { color: { background: '#e8f5e8', border: '#4caf50' } },
+                    agent: { color: { background: '#fff3e0', border: '#ff9800' } },
+                    model: { color: { background: '#f3e5f5', border: '#9c27b0' } },
+                    api: { color: { background: '#ffebee', border: '#f44336' } },
+                    test_func: { color: { background: '#f1f8e9', border: '#8bc34a' } }
+                },
+                physics: {
+                    stabilization: false,
+                    barnesHut: {
+                        gravitationalConstant: -80000,
+                        springConstant: 0.001,
+                        springLength: 200
+                    }
+                },
+                layout: {
+                    hierarchical: {
+                        direction: 'UD',
+                        sortMethod: 'directed'
+                    }
+                }
+            };
+            
+            // 네트워크 생성
+            const network = new vis.Network(container, { nodes, edges }, options);
+            
+            // 이벤트 리스너
+            network.on('click', function(params) {
+                if (params.nodes.length > 0) {
+                    const nodeId = params.nodes[0];
+                    const node = nodes.get(nodeId);
+                    console.log('Clicked node:', node);
+                }
+            });
+        }
+        
+        // 페이지 로드 시 네트워크 생성
+        document.addEventListener('DOMContentLoaded', createNetwork);
+    </script>
+</body>
+</html> 

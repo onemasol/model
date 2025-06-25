@@ -43,6 +43,28 @@ model = ChatOllama(
     temperature=0.5,
 )
 
+def create_api_headers(access_token: Optional[str] = None) -> Dict[str, str]:
+    """
+    API 요청용 헤더 생성
+    
+    Args:
+        access_token: 인증 토큰 (선택사항)
+    
+    Returns:
+        API 요청 헤더 딕셔너리
+    """
+    headers = {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NTY0MjMsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.EAD7hJ1WGSZtmZtiwxro5e4ZgslEOofT0yhM1ADvCCM",
+        "Content-Type": "application/json",
+        "accept": "application/json"
+    }
+    
+    # 실제 access_token이 있으면 교체
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
+    
+    return headers
+
 async def handle_calendar_api_request(state: Dict) -> Dict:
     """
     calendar_type과 calendar_operation 조합에 따른 8가지 경우의 수 처리
@@ -69,14 +91,8 @@ async def handle_calendar_api_request(state: Dict) -> Dict:
         return state
     
     # 인증 헤더 설정
-    headers = {
-        "Content-Type": "application/json",
-        "accept": "application/json"
-    }
-    
     access_token = state.get("access_token")
-    if access_token:
-        headers["Authorization"] = f"Bearer {access_token}"
+    headers = create_api_headers(access_token)
     
     try:
         if calendar_type == "event":
@@ -147,14 +163,8 @@ async def create_agent_task(
         "used_agents": used_agents
     }
     
-    headers = {
-        "Content-Type": "application/json",
-        "accept": "application/json"
-    }
-    
-    # 인증 토큰이 있으면 헤더에 추가
-    if access_token:
-        headers["Authorization"] = f"Bearer {access_token}"
+    # 헤더 생성
+    headers = create_api_headers(access_token)
     
     try:
         async with httpx.AsyncClient() as client:
@@ -213,17 +223,19 @@ async def create_agent_event(
         "created_by_agent": created_by_agent
     }
     
-    headers = {
-        "Content-Type": "application/json",
-        "accept": "application/json"
-    }
+    # 헤더 생성
+    headers = create_api_headers(access_token)
     
-    # 인증 토큰이 있으면 헤더에 추가
-    if access_token:
-        headers["Authorization"] = f"Bearer {access_token}"
+    # 디버깅 정보 출력
+    print(f"🔍 에이전트 이벤트 생성 디버깅:")
+    print(f"   - API URL: {api_url}")
+    print(f"   - Headers: {headers}")
+    print(f"   - Payload: {payload}")
+    print(f"   - Access Token: {'있음' if access_token else '없음'}")
     
     try:
         async with httpx.AsyncClient() as client:
+            print(f"📡 에이전트 이벤트 API 요청 전송 중...")
             response = await client.post(
                 api_url,
                 json=payload,
@@ -231,22 +243,36 @@ async def create_agent_event(
                 timeout=30.0
             )
             
+            print(f"📊 에이전트 이벤트 응답 상태 코드: {response.status_code}")
+            print(f"📄 에이전트 이벤트 응답 헤더: {dict(response.headers)}")
+            
             if response.status_code == 200:
-                return response.json()
+                result = response.json()
+                print(f"✅ 에이전트 이벤트 응답 데이터: {result}")
+                return result
             elif response.status_code == 403:
                 print("⚠️  인증이 필요합니다. access_token을 제공해주세요.")
                 return {"error": "Authentication required"}
             else:
+                print(f"❌ 응답 내용: {response.text}")
                 print(f"❌ 에이전트 이벤트 생성 실패: {response.status_code} - {response.text}")
                 return {"error": f"Failed to create agent event: {response.status_code}"}
                 
     except Exception as e:
-        print(f"❌ API 요청 중 오류 발생: {str(e)}")
+        print(f"❌ 에이전트 이벤트 API 요청 중 예외 발생: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {"error": f"Request failed: {str(e)}"}
 
 async def handle_event_create(state: Dict, base_url: str, headers: Dict) -> Dict:
     """이벤트 생성 처리"""
     print("📅 이벤트 생성 요청 처리 중...")
+    
+    # 디버깅: 상태 정보 출력
+    print(f"🔍 디버깅 정보:")
+    print(f"   - base_url: {base_url}")
+    print(f"   - headers: {headers}")
+    print(f"   - state keys: {list(state.keys())}")
     
     # 이벤트 생성용 payload 구성
     event_data = {
@@ -261,28 +287,49 @@ async def handle_event_create(state: Dict, base_url: str, headers: Dict) -> Dict
     if state.get("event_payload"):
         event_data.update(state["event_payload"])
     
-    api_url = f"{base_url}/api/v1/calendar/events"
+    # 디버깅: 페이로드 정보 출력
+    print(f"📋 이벤트 페이로드:")
+    print(f"   - title: {event_data.get('title')}")
+    print(f"   - start_at: {event_data.get('start_at')}")
+    print(f"   - end_at: {event_data.get('end_at')}")
+    print(f"   - timezone: {event_data.get('timezone')}")
+    print(f"   - description: {event_data.get('description')}")
     
-    async with httpx.AsyncClient() as client:
-        response = await client.post(api_url, json=event_data, headers=headers)
-        
-        if response.status_code == 200:
-            result = response.json()
-            state["crud_result"] = f"이벤트 생성 완료: {result.get('id', 'N/A')}"
-            print(f"✅ 이벤트 생성 완료: {result.get('id', 'N/A')}")
+    api_url = f"{base_url}/api/v1/calendar/events"
+    print(f"🌐 API URL: {api_url}")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            print(f"📡 API 요청 전송 중...")
+            response = await client.post(api_url, json=event_data, headers=headers)
             
-            # 에이전트 태스크 생성
-            await create_agent_task_for_calendar_operation(
-                state, "이벤트 생성", result.get('id', 'N/A'), headers.get("Authorization")
-            )
+            print(f"📊 응답 상태 코드: {response.status_code}")
+            print(f"📄 응답 헤더: {dict(response.headers)}")
             
-            # 에이전트 이벤트 생성
-            await create_agent_event_for_calendar_operation(
-                state, result.get('id', 'N/A'), headers.get("Authorization")
-            )
-        else:
-            state["crud_result"] = f"이벤트 생성 실패: {response.status_code}"
-            print(f"❌ 이벤트 생성 실패: {response.status_code} - {response.text}")
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ 응답 데이터: {result}")
+                state["crud_result"] = f"이벤트 생성 완료: {result.get('id', 'N/A')}"
+                print(f"✅ 이벤트 생성 완료: {result.get('id', 'N/A')}")
+                
+                # 에이전트 태스크 생성
+                await create_agent_task_for_calendar_operation(
+                    state, "이벤트 생성", result.get('id', 'N/A'), headers.get("Authorization")
+                )
+                
+                # 에이전트 이벤트 생성
+                await create_agent_event_for_calendar_operation(
+                    state, result.get('id', 'N/A'), headers.get("Authorization")
+                )
+            else:
+                print(f"❌ 응답 내용: {response.text}")
+                state["crud_result"] = f"이벤트 생성 실패: {response.status_code}"
+                print(f"❌ 이벤트 생성 실패: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"❌ API 요청 중 예외 발생: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        state["crud_result"] = f"이벤트 생성 중 오류: {str(e)}"
     
     return state
 

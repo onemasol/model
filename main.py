@@ -24,9 +24,7 @@ from routers.websearch_critic import websearch_critic
 from routers.task_router import task_router
 from routers.query_refiner import query_refiner
 
-#api 파일들 라우팅
-from api.make_agents_log_payload import make_agent_logs_payload
-from api.send_agents_log import send_log_to_backend
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -128,11 +126,6 @@ if __name__ == "__main__":
     # 일반적으로 .invoke(state) 형태(최신 버전)
         # 1) 그래프 실행
     result_state = workflow_app.invoke(state)
-
-        # 2) 플로우 종료 시 로그 전송
-    if result_state.get("next_node") is None:
-        payload = make_agent_logs_payload(result_state)
-        send_log_to_backend(payload)
     
     # 3. 결과 출력
     print("\n=== 최종 출력 ===")

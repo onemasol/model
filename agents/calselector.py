@@ -242,9 +242,9 @@ class CalendarAPIClient:
         if not user_id:
             user_id = os.getenv("CALENDAR_USER_ID")
         
-        # 3. 기본값 사용
+        # 3. 기본값 사용 (API 문서에 맞는 사용자 ID)
         if not user_id:
-            user_id = "542c2e7e-256a-4e15-abdb-f38310e94007"  # 기본 사용자 ID
+            user_id = "4a728952-53a0-4abe-ae8c-0ff440d6585e"  # API 문서의 사용자 ID 하드코딩임
             print("⚠️ 사용자 ID가 설정되지 않아 기본값을 사용합니다.")
         
         return user_id

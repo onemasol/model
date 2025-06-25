@@ -14,7 +14,10 @@
 ## 이 아래는 for 이지 only
 
 1. cd /root/model
-2. uvicorn api.api:app --host 0.0.0.0 --port 8000
+2. uvicorn api.api2:app \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --reload
 3. ngrok config add-authtoken $YOUR_AUTHTOKEN(새로 파면 다시 해야함)
 4. ngrok http 8000
 5. 테스트 : curl -X POST https://76e6-165-132-46-93.ngrok-free.app/calendar -H "Content-Type: application/json" -d '{"prompt": "내일 오후 2시에 미팅 추가해줘"}'

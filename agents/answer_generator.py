@@ -7,7 +7,7 @@ import os
 import torch
 import httpx
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # NVIDIA GPU 최적화 설정
 def setup_optimal_device():
@@ -54,7 +54,7 @@ def create_api_headers(access_token: Optional[str] = None) -> Dict[str, str]:
         API 요청 헤더 딕셔너리
     """
     headers = { # 하드코딩함 Access Token
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NjQ0OTYsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.0-5CgQ4mHZGeSywW8z5NKQaE9YYSzyiH2FJpeBWdsgo",
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NzU1MzYsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.n4dtcTdY3w4sWGVEcr1z0fyKFeGZ-w8b6mH8EkKJX2M",
         "Content-Type": "application/json",
         "accept": "application/json"
     }
@@ -67,12 +67,12 @@ def create_api_headers(access_token: Optional[str] = None) -> Dict[str, str]:
 
 async def handle_calendar_api_request(state: Dict) -> Dict:
     """
-    calendar_type과 calendar_operation 조합에 따른 8가지 경우의 수 처리
+    calendar_type과 calendar_operation 조합에 따른 12가지 경우의 수 처리
     
-    calendar_type: "event" | "task"
+    calendar_type: "event" | "task" | "agent_event"
     calendar_operation: "create" | "read" | "update" | "delete"
     
-    8가지 조합:
+    12가지 조합:
     1. event + create
     2. event + read  
     3. event + update
@@ -81,6 +81,10 @@ async def handle_calendar_api_request(state: Dict) -> Dict:
     6. task + read
     7. task + update
     8. task + delete
+    9. agent_event + create
+    10. agent_event + read
+    11. agent_event + update
+    12. agent_event + delete
     """
     calendar_type = state.get("calendar_type")
     calendar_operation = state.get("calendar_operation")
@@ -128,6 +132,23 @@ async def handle_calendar_api_request(state: Dict) -> Dict:
             elif calendar_operation == "delete":
                 # 8. task + delete
                 return await handle_task_delete(state, base_url, headers)
+                
+        elif calendar_type == "agent_event":
+            if calendar_operation == "create":
+                # 9. agent_event + create
+                return await handle_agent_event_create(state, base_url, headers)
+                
+            elif calendar_operation == "read":
+                # 10. agent_event + read
+                return await handle_agent_event_read(state, base_url, headers)
+                
+            elif calendar_operation == "update":
+                # 11. agent_event + update
+                return await handle_agent_event_update(state, base_url, headers)
+                
+            elif calendar_operation == "delete":
+                # 12. agent_event + delete
+                return await handle_agent_event_delete(state, base_url, headers)
         
         print(f"❌ 지원하지 않는 조합: {calendar_type} + {calendar_operation}")
         return state
@@ -139,6 +160,7 @@ async def handle_calendar_api_request(state: Dict) -> Dict:
 async def create_agent_task(
     title: str, 
     description: str, 
+    due_at: str,
     used_agents: list,
     access_token: Optional[str] = None
 ) -> Dict:
@@ -159,6 +181,7 @@ async def create_agent_task(
     payload = {
         "title": title,
         "description": description,
+        "due_at": due_at,
         "status": "pending",
         "used_agents": used_agents
     }
@@ -341,17 +364,29 @@ async def handle_event_read(state: Dict, base_url: str, headers: Dict) -> Dict:
     # 특정 이벤트 조회
     if state.get("selected_item_id"):
         api_url = f"{base_url}/api/v1/calendar/events/{state['selected_item_id']}"
+        print(f"🌐 GET 요청 - 특정 이벤트 조회: {api_url}")
     else:
         # 전체 이벤트 조회
         api_url = f"{base_url}/api/v1/calendar/events"
+        print(f"🌐 GET 요청 - 전체 이벤트 조회: {api_url}")
+    
+    print(f"📡 GET 요청 전송 중...")
+    print(f"   - Method: GET")
+    print(f"   - URL: {api_url}")
+    print(f"   - Headers: {headers}")
+    print(f"   - Query Params: {query_params}")
     
     async with httpx.AsyncClient() as client:
         response = await client.get(api_url, headers=headers, params=query_params)
+        
+        print(f"📊 GET 응답 상태 코드: {response.status_code}")
+        print(f"📄 GET 응답 헤더: {dict(response.headers)}")
         
         if response.status_code == 200:
             result = response.json()
             state["crud_result"] = f"이벤트 조회 완료: {len(result) if isinstance(result, list) else 1}개 항목"
             print(f"✅ 이벤트 조회 완료: {len(result) if isinstance(result, list) else 1}개 항목")
+            print(f"📋 응답 데이터: {result}")
         else:
             state["crud_result"] = f"이벤트 조회 실패: {response.status_code}"
             print(f"❌ 이벤트 조회 실패: {response.status_code} - {response.text}")
@@ -407,16 +442,42 @@ async def handle_event_delete(state: Dict, base_url: str, headers: Dict) -> Dict
         return state
     
     api_url = f"{base_url}/api/v1/calendar/events/{state['selected_item_id']}"
+    print(f"🌐 DELETE 요청 - 이벤트 삭제: {api_url}")
     
-    async with httpx.AsyncClient() as client:
-        response = await client.delete(api_url, headers=headers)
-        
-        if response.status_code == 200:
-            state["crud_result"] = f"이벤트 삭제 완료: {state['selected_item_id']}"
-            print(f"✅ 이벤트 삭제 완료: {state['selected_item_id']}")
-        else:
-            state["crud_result"] = f"이벤트 삭제 실패: {response.status_code}"
-            print(f"❌ 이벤트 삭제 실패: {response.status_code} - {response.text}")
+    try:
+        async with httpx.AsyncClient() as client:
+            print(f"📡 DELETE 요청 전송 중...")
+            print(f"   - Method: DELETE")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            response = await client.delete(api_url, headers=headers)
+            
+            print(f"📊 DELETE 응답 상태 코드: {response.status_code}")
+            print(f"📄 DELETE 응답 헤더: {dict(response.headers)}")
+            
+            if response.status_code == 204:
+                # 204 No Content - 성공적으로 삭제됨
+                state["crud_result"] = f"이벤트 삭제 완료: {state['selected_item_id']} (204 No Content)"
+                print(f"✅ 이벤트 삭제 완료: {state['selected_item_id']} (204 No Content)")
+            elif response.status_code == 200:
+                # 200 OK - 성공적으로 삭제됨 (기존 호환성)
+                state["crud_result"] = f"이벤트 삭제 완료: {state['selected_item_id']}"
+                print(f"✅ 이벤트 삭제 완료: {state['selected_item_id']}")
+            elif response.status_code == 404:
+                error_msg = f"삭제할 이벤트를 찾을 수 없습니다. (ID: {state['selected_item_id']}) - 해당 이벤트가 존재하지 않거나 현재 사용자의 이벤트가 아닙니다."
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+            else:
+                error_msg = f"이벤트 삭제 실패: {response.status_code} - {response.text}"
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
+    except Exception as e:
+        error_msg = f"이벤트 삭제 중 오류 발생: {str(e)}"
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        import traceback
+        traceback.print_exc()
     
     return state
 
@@ -429,12 +490,32 @@ async def handle_task_create(state: Dict, base_url: str, headers: Dict) -> Dict:
         print("⚠️  이미 API 처리가 완료되었습니다. 중복 요청을 방지합니다.")
         return state
     
+    # 사용된 에이전트 정보 구성
+    used_agents = []
+    if state.get("agent_messages"):
+        for msg in state["agent_messages"]:
+            used_agents.append({
+                "agent_name": msg.get("agent", "unknown"),
+                "timestamp": datetime.now().isoformat(),
+                "input_summary": str(msg.get("input_snapshot", {}).get("user_query", ""))[:100] + "...",
+                "operation": "task_creation"
+            })
+    else:
+        # 기본 에이전트 정보
+        used_agents.append({
+            "agent_name": "answer_generator",
+            "timestamp": datetime.now().isoformat(),
+            "input_summary": str(state.get("initial_input", ""))[:100] + "...",
+            "operation": "task_creation"
+        })
+    
     # 할일 생성용 payload 구성
     task_data = {
         "title": state.get("title", ""),
         "description": state.get("initial_input", ""),
+        "status": "pending",
         "due_at": state.get("due_at"),
-        "status": "pending"
+        "used_agents": used_agents
     }
     
     # event_payload가 있으면 사용 (할일도 동일한 필드 사용)
@@ -445,12 +526,19 @@ async def handle_task_create(state: Dict, base_url: str, headers: Dict) -> Dict:
     api_url = f"{base_url}/api/v1/agent/tasks"
     print(f"🌐 할일 생성 API URL: {api_url}")
     
+    # 디버깅 정보 출력
+    print(f"🔍 할일 생성 디버깅:")
+    print(f"   - API URL: {api_url}")
+    print(f"   - Headers: {headers}")
+    print(f"   - Payload: {task_data}")
+    
     try:
         async with httpx.AsyncClient() as client:
             print(f"📡 할일 생성 API 요청 전송 중...")
             response = await client.post(api_url, json=task_data, headers=headers)
             
             print(f"📊 할일 생성 응답 상태 코드: {response.status_code}")
+            print(f"📄 할일 생성 응답 헤더: {dict(response.headers)}")
             
             if response.status_code == 200:
                 result = response.json()
@@ -463,6 +551,7 @@ async def handle_task_create(state: Dict, base_url: str, headers: Dict) -> Dict:
                 # 할일 생성 시에는 추가 생성 없음 (중복 방지)
                 print("✅ 할일 생성 완료 - 추가 에이전트 이벤트/태스크 생성 없음")
             else:
+                print(f"❌ 응답 내용: {response.text}")
                 error_msg = f"할일 생성 실패: {response.status_code} - {response.text}"
                 state["crud_result"] = error_msg
                 print(f"❌ {error_msg}")
@@ -479,84 +568,75 @@ async def handle_task_read(state: Dict, base_url: str, headers: Dict) -> Dict:
     """할일 조회 처리"""
     print("📋 할일 조회 요청 처리 중...")
     
-    # 조회 조건 구성
-    query_params = {}
-    if state.get("query_info"):
-        query_params.update(state["query_info"])
+    # 디버깅: 상태 정보 출력
+    print(f"🔍 할일 조회 디버깅 정보:")
+    print(f"   - selected_item_id: {state.get('selected_item_id')}")
+    print(f"   - state keys: {list(state.keys())}")
+    print(f"   - initial_input: {state.get('initial_input', '')}")
     
-    # 특정 할일 조회
+    # 특정 할일 조회 (task_id가 필요함)
     if state.get("selected_item_id"):
         api_url = f"{base_url}/api/v1/agent/tasks/{state['selected_item_id']}"
         print(f"🌐 특정 할일 조회 API URL: {api_url}")
         print(f"🔍 조회할 할일 ID: {state['selected_item_id']}")
     else:
-        # 전체 할일 조회
-        api_url = f"{base_url}/api/v1/agent/tasks"
-        print(f"🌐 전체 할일 조회 API URL: {api_url}")
+        # 전체 할일 조회 (현재는 지원하지 않음 - 특정 task_id 필요)
+        error_msg = "할일 조회를 위해서는 task_id가 필요합니다. 구체적인 할일 ID를 지정해주세요."
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        return state
     
     try:
         async with httpx.AsyncClient() as client:
-            print(f"📡 할일 조회 API 요청 전송 중...")
-            response = await client.get(api_url, headers=headers, params=query_params)
+            print(f"📡 GET 요청 전송 중...")
+            print(f"   - Method: GET")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            response = await client.get(api_url, headers=headers)
             
-            print(f"📊 할일 조회 응답 상태 코드: {response.status_code}")
-            print(f"📄 할일 조회 응답 헤더: {dict(response.headers)}")
+            print(f"📊 GET 응답 상태 코드: {response.status_code}")
+            print(f"📄 GET 응답 헤더: {dict(response.headers)}")
             
             if response.status_code == 200:
                 result = response.json()
+                print(f"✅ 특정 할일 조회 완료")
+                print(f"📋 할일 상세 정보:")
+                print(f"   - 제목: {result.get('title', 'N/A')}")
+                print(f"   - 설명: {result.get('description', 'N/A')}")
+                print(f"   - 상태: {result.get('status', 'N/A')}")
+                print(f"   - 할일 ID: {result.get('task_id', 'N/A')}")
+                print(f"   - 사용자 ID: {result.get('user_id', 'N/A')}")
+                print(f"   - 마감일: {result.get('due_at', 'N/A')}")
+                print(f"   - 생성 시간: {result.get('created_at', 'N/A')}")
+                print(f"   - 수정 시간: {result.get('updated_at', 'N/A')}")
                 
-                if state.get("selected_item_id"):
-                    # 특정 할일 조회 결과
-                    print(f"✅ 특정 할일 조회 완료")
-                    print(f"📋 할일 상세 정보:")
-                    print(f"   - 제목: {result.get('title', 'N/A')}")
-                    print(f"   - 설명: {result.get('description', 'N/A')}")
-                    print(f"   - 상태: {result.get('status', 'N/A')}")
-                    print(f"   - 할일 ID: {result.get('task_id', 'N/A')}")
-                    print(f"   - 사용자 ID: {result.get('user_id', 'N/A')}")
-                    print(f"   - 생성 시간: {result.get('created_at', 'N/A')}")
-                    print(f"   - 수정 시간: {result.get('updated_at', 'N/A')}")
-                    
-                    # 사용된 에이전트 정보 출력
-                    used_agents = result.get('used_agents', [])
-                    if used_agents:
-                        print(f"   - 사용된 에이전트: {len(used_agents)}개")
-                        for i, agent in enumerate(used_agents, 1):
-                            print(f"     {i}. {agent.get('agent_name', 'N/A')} - {agent.get('operation', 'N/A')}")
-                    
-                    state["crud_result"] = f"할일 조회 완료: {result.get('title', 'N/A')} (ID: {result.get('task_id', 'N/A')})"
+                # 사용된 에이전트 정보 출력
+                used_agents = result.get('used_agents', [])
+                if used_agents:
+                    print(f"   - 사용된 에이전트: {len(used_agents)}개")
+                    for i, agent in enumerate(used_agents, 1):
+                        print(f"     {i}. {agent.get('agent_name', 'N/A')} - {agent.get('operation', 'N/A')}")
+                        print(f"        시간: {agent.get('timestamp', 'N/A')}")
+                        print(f"        입력 요약: {agent.get('input_summary', 'N/A')}")
                 else:
-                    # 전체 할일 조회 결과
-                    if isinstance(result, list):
-                        print(f"✅ 전체 할일 조회 완료: {len(result)}개 항목")
-                        if result:
-                            print(f"📋 첫 번째 할일 정보:")
-                            first_task = result[0]
-                            print(f"   - 제목: {first_task.get('title', 'N/A')}")
-                            print(f"   - 상태: {first_task.get('status', 'N/A')}")
-                            print(f"   - 할일 ID: {first_task.get('task_id', 'N/A')}")
-                        
-                        # 할일 목록 요약
-                        status_counts: Dict[str, int] = {}
-                        for task in result:
-                            status = task.get('status', 'unknown')
-                            status_counts[status] = status_counts.get(status, 0) + 1
-                        
-                        print(f"📊 상태별 할일 개수:")
-                        for status, count in status_counts.items():
-                            print(f"   - {status}: {count}개")
-                    else:
-                        print(f"✅ 할일 조회 완료: 1개 항목")
-                    
-                    state["crud_result"] = f"할일 조회 완료: {len(result) if isinstance(result, list) else 1}개 항목"
+                    print(f"   - 사용된 에이전트: 없음")
+                
+                # 전체 응답 데이터 출력
+                print(f"📋 전체 응답 데이터: {result}")
+                
+                # 응답 결과를 state에 저장
+                state["crud_result"] = f"할일 조회 완료: {result.get('title', 'N/A')} (ID: {result.get('task_id', 'N/A')})"
+                state["task_details"] = result  # 전체 응답 데이터 저장
+                
             elif response.status_code == 404:
-                error_msg = f"할일을 찾을 수 없습니다. (ID: {state.get('selected_item_id', 'N/A')})"
+                error_msg = f"할일을 찾을 수 없습니다. (ID: {state.get('selected_item_id', 'N/A')}) - 해당 태스크가 존재하지 않거나 현재 사용자의 태스크가 아닙니다."
                 state["crud_result"] = error_msg
                 print(f"❌ {error_msg}")
             else:
                 error_msg = f"할일 조회 실패: {response.status_code} - {response.text}"
                 state["crud_result"] = error_msg
                 print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
     except Exception as e:
         error_msg = f"할일 조회 중 오류 발생: {str(e)}"
         state["crud_result"] = error_msg
@@ -584,6 +664,8 @@ async def handle_task_update(state: Dict, base_url: str, headers: Dict) -> Dict:
         update_data["description"] = state["description"]
     if state.get("status"):
         update_data["status"] = state["status"]
+    if state.get("due_at"):
+        update_data["due_at"] = state["due_at"]
     
     # event_payload가 있으면 사용
     if state.get("event_payload"):
@@ -591,23 +673,39 @@ async def handle_task_update(state: Dict, base_url: str, headers: Dict) -> Dict:
     
     # API 엔드포인트 수정 - agent tasks API 사용
     api_url = f"{base_url}/api/v1/agent/tasks/{state['selected_item_id']}"
-    print(f"🌐 할일 수정 API URL: {api_url}")
+    print(f"🌐 PUT 요청 - 할일 수정: {api_url}")
     
     try:
         async with httpx.AsyncClient() as client:
-            print(f"📡 할일 수정 API 요청 전송 중...")
+            print(f"📡 PUT 요청 전송 중...")
+            print(f"   - Method: PUT")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            print(f"   - Payload: {update_data}")
             response = await client.put(api_url, json=update_data, headers=headers)
             
-            print(f"📊 할일 수정 응답 상태 코드: {response.status_code}")
+            print(f"📊 PUT 응답 상태 코드: {response.status_code}")
+            print(f"📄 PUT 응답 헤더: {dict(response.headers)}")
             
             if response.status_code == 200:
                 result = response.json()
                 state["crud_result"] = f"할일 수정 완료: {result.get('task_id', 'N/A')}"
                 print(f"✅ 할일 수정 완료: {result.get('task_id', 'N/A')}")
+                print(f"📋 수정된 할일 정보:")
+                print(f"   - 제목: {result.get('title', 'N/A')}")
+                print(f"   - 설명: {result.get('description', 'N/A')}")
+                print(f"   - 상태: {result.get('status', 'N/A')}")
+                print(f"   - 할일 ID: {result.get('task_id', 'N/A')}")
+                print(f"   - 마감일: {result.get('due_at', 'N/A')}")
+            elif response.status_code == 404:
+                error_msg = f"수정할 할일을 찾을 수 없습니다. (ID: {state['selected_item_id']}) - 해당 태스크가 존재하지 않거나 현재 사용자의 태스크가 아닙니다."
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
             else:
                 error_msg = f"할일 수정 실패: {response.status_code} - {response.text}"
                 state["crud_result"] = error_msg
                 print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
     except Exception as e:
         error_msg = f"할일 수정 중 오류 발생: {str(e)}"
         state["crud_result"] = error_msg
@@ -635,27 +733,36 @@ async def handle_task_delete(state: Dict, base_url: str, headers: Dict) -> Dict:
     
     # API 엔드포인트 수정 - agent tasks API 사용
     api_url = f"{base_url}/api/v1/agent/tasks/{state['selected_item_id']}"
-    print(f"🌐 할일 삭제 API URL: {api_url}")
+    print(f"🌐 DELETE 요청 - 할일 삭제: {api_url}")
     
     try:
         async with httpx.AsyncClient() as client:
-            print(f"📡 할일 삭제 API 요청 전송 중...")
+            print(f"📡 DELETE 요청 전송 중...")
+            print(f"   - Method: DELETE")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
             response = await client.delete(api_url, headers=headers)
             
-            print(f"📊 할일 삭제 응답 상태 코드: {response.status_code}")
-            print(f"📄 할일 삭제 응답 헤더: {dict(response.headers)}")
+            print(f"📊 DELETE 응답 상태 코드: {response.status_code}")
+            print(f"📄 DELETE 응답 헤더: {dict(response.headers)}")
             
-            if response.status_code == 200:
+            if response.status_code == 204:
+                # 204 No Content - 성공적으로 삭제됨
+                state["crud_result"] = f"할일 삭제 완료: {state['selected_item_id']} (204 No Content)"
+                print(f"✅ 할일 삭제 완료: {state['selected_item_id']} (204 No Content)")
+            elif response.status_code == 200:
+                # 200 OK - 성공적으로 삭제됨 (기존 호환성)
                 state["crud_result"] = f"할일 삭제 완료: {state['selected_item_id']}"
                 print(f"✅ 할일 삭제 완료: {state['selected_item_id']}")
             elif response.status_code == 404:
-                error_msg = f"삭제할 할일을 찾을 수 없습니다. (ID: {state['selected_item_id']})"
+                error_msg = f"삭제할 할일을 찾을 수 없습니다. (ID: {state['selected_item_id']}) - 해당 태스크가 존재하지 않거나 현재 사용자의 태스크가 아닙니다."
                 state["crud_result"] = error_msg
                 print(f"❌ {error_msg}")
             else:
                 error_msg = f"할일 삭제 실패: {response.status_code} - {response.text}"
                 state["crud_result"] = error_msg
                 print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
     except Exception as e:
         error_msg = f"할일 삭제 중 오류 발생: {str(e)}"
         state["crud_result"] = error_msg
@@ -707,10 +814,14 @@ async def create_agent_task_for_calendar_operation(
         if auth_header and auth_header.startswith("Bearer "):
             access_token = auth_header[7:]  # "Bearer " 제거
         
+        # due_at 설정 (기본값: 현재 시간 + 1일)
+        due_at = state.get("due_at", (datetime.now() + timedelta(days=1)).isoformat())
+        
         # 에이전트 태스크 생성
         task_result = await create_agent_task(
             title=task_title,
             description=task_description,
+            due_at=due_at,
             used_agents=used_agents,
             access_token=access_token
         )
@@ -788,6 +899,269 @@ async def create_agent_event_for_calendar_operation(
     except Exception as e:
         print(f"❌ 에이전트 이벤트 생성 중 오류 발생: {str(e)}")
 
+async def handle_agent_event_create(state: Dict, base_url: str, headers: Dict) -> Dict:
+    """에이전트 이벤트 생성 처리"""
+    print("📅 에이전트 이벤트 생성 요청 처리 중...")
+    
+    # 사용된 에이전트 정보 구성
+    created_by_agent = "answer_generator"
+    if state.get("agent_messages"):
+        # 가장 최근 에이전트 사용
+        latest_agent = state["agent_messages"][-1]
+        created_by_agent = latest_agent.get("agent", "answer_generator")
+    
+    # 에이전트 이벤트 생성용 payload 구성
+    event_data = {
+        "title": state.get("title", ""),
+        "description": state.get("initial_input", ""),
+        "start_at": state.get("start_at"),
+        "end_at": state.get("end_at"),
+        "location": state.get("location", "위치 미지정"),
+        "source_type": "user",
+        "created_by_agent": created_by_agent,
+        "timezone": state.get("timezone", "Asia/Seoul")
+    }
+    
+    # event_payload가 있으면 사용
+    if state.get("event_payload"):
+        event_data.update(state["event_payload"])
+    
+    # API 엔드포인트 - agent events API 사용
+    api_url = f"{base_url}/api/v1/agent/events"
+    print(f"🌐 POST 요청 - 에이전트 이벤트 생성: {api_url}")
+    
+    # 디버깅 정보 출력
+    print(f"🔍 에이전트 이벤트 생성 디버깅:")
+    print(f"   - API URL: {api_url}")
+    print(f"   - Headers: {headers}")
+    print(f"   - Payload: {event_data}")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            print(f"📡 POST 요청 전송 중...")
+            print(f"   - Method: POST")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            print(f"   - Payload: {event_data}")
+            response = await client.post(api_url, json=event_data, headers=headers)
+            
+            print(f"📊 POST 응답 상태 코드: {response.status_code}")
+            print(f"📄 POST 응답 헤더: {dict(response.headers)}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                state["crud_result"] = f"에이전트 이벤트 생성 완료: {result.get('id', 'N/A')}"
+                print(f"✅ 에이전트 이벤트 생성 완료: {result.get('id', 'N/A')}")
+                print(f"📋 생성된 에이전트 이벤트 정보:")
+                print(f"   - 제목: {result.get('title', 'N/A')}")
+                print(f"   - 설명: {result.get('description', 'N/A')}")
+                print(f"   - 시작: {result.get('start_at', 'N/A')}")
+                print(f"   - 종료: {result.get('end_at', 'N/A')}")
+                print(f"   - 위치: {result.get('location', 'N/A')}")
+                print(f"   - 이벤트 ID: {result.get('id', 'N/A')}")
+            else:
+                error_msg = f"에이전트 이벤트 생성 실패: {response.status_code} - {response.text}"
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
+    except Exception as e:
+        error_msg = f"에이전트 이벤트 생성 중 오류 발생: {str(e)}"
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        import traceback
+        traceback.print_exc()
+    
+    return state
+
+async def handle_agent_event_read(state: Dict, base_url: str, headers: Dict) -> Dict:
+    """에이전트 이벤트 조회 처리"""
+    print("📅 에이전트 이벤트 조회 요청 처리 중...")
+    
+    # 특정 에이전트 이벤트 조회 (event_id가 필요함)
+    if state.get("selected_item_id"):
+        api_url = f"{base_url}/api/v1/agent/events/{state['selected_item_id']}"
+        print(f"🌐 GET 요청 - 특정 에이전트 이벤트 조회: {api_url}")
+        print(f"🔍 조회할 에이전트 이벤트 ID: {state['selected_item_id']}")
+    else:
+        # 전체 에이전트 이벤트 조회 (현재는 지원하지 않음 - 특정 event_id 필요)
+        error_msg = "에이전트 이벤트 조회를 위해서는 event_id가 필요합니다. 구체적인 이벤트 ID를 지정해주세요."
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        return state
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            print(f"📡 GET 요청 전송 중...")
+            print(f"   - Method: GET")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            response = await client.get(api_url, headers=headers)
+            
+            print(f"📊 GET 응답 상태 코드: {response.status_code}")
+            print(f"📄 GET 응답 헤더: {dict(response.headers)}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                print(f"✅ 특정 에이전트 이벤트 조회 완료")
+                print(f"📋 에이전트 이벤트 상세 정보:")
+                print(f"   - 제목: {result.get('title', 'N/A')}")
+                print(f"   - 설명: {result.get('description', 'N/A')}")
+                print(f"   - 시작: {result.get('start_at', 'N/A')}")
+                print(f"   - 종료: {result.get('end_at', 'N/A')}")
+                print(f"   - 위치: {result.get('location', 'N/A')}")
+                print(f"   - 이벤트 ID: {result.get('id', 'N/A')}")
+                print(f"   - 사용자 ID: {result.get('user_id', 'N/A')}")
+                print(f"   - 생성 에이전트: {result.get('created_by_agent', 'N/A')}")
+                print(f"   - 소스 타입: {result.get('source_type', 'N/A')}")
+                print(f"   - 생성 시간: {result.get('created_at', 'N/A')}")
+                print(f"   - 수정 시간: {result.get('updated_at', 'N/A')}")
+                
+                # 전체 응답 데이터 출력
+                print(f"📋 전체 응답 데이터: {result}")
+                
+                # 응답 결과를 state에 저장
+                state["crud_result"] = f"에이전트 이벤트 조회 완료: {result.get('title', 'N/A')} (ID: {result.get('id', 'N/A')})"
+                state["agent_event_details"] = result  # 전체 응답 데이터 저장
+                
+            elif response.status_code == 404:
+                error_msg = f"에이전트 이벤트를 찾을 수 없습니다. (ID: {state.get('selected_item_id', 'N/A')}) - 해당 이벤트가 존재하지 않거나 현재 사용자의 이벤트가 아닙니다."
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+            else:
+                error_msg = f"에이전트 이벤트 조회 실패: {response.status_code} - {response.text}"
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
+    except Exception as e:
+        error_msg = f"에이전트 이벤트 조회 중 오류 발생: {str(e)}"
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        import traceback
+        traceback.print_exc()
+    
+    return state
+
+async def handle_agent_event_update(state: Dict, base_url: str, headers: Dict) -> Dict:
+    """에이전트 이벤트 수정 처리"""
+    print("📅 에이전트 이벤트 수정 요청 처리 중...")
+    
+    if not state.get("selected_item_id"):
+        error_msg = "수정할 에이전트 이벤트 ID가 필요합니다."
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        return state
+    
+    # 수정할 데이터 구성
+    update_data = {}
+    if state.get("title"):
+        update_data["title"] = state["title"]
+    if state.get("description"):
+        update_data["description"] = state["description"]
+    if state.get("start_at"):
+        update_data["start_at"] = state["start_at"]
+    if state.get("end_at"):
+        update_data["end_at"] = state["end_at"]
+    if state.get("location"):
+        update_data["location"] = state["location"]
+    if state.get("timezone"):
+        update_data["timezone"] = state["timezone"]
+    
+    # event_payload가 있으면 사용
+    if state.get("event_payload"):
+        update_data.update(state["event_payload"])
+    
+    # API 엔드포인트 - agent events API 사용
+    api_url = f"{base_url}/api/v1/agent/events/{state['selected_item_id']}"
+    print(f"🌐 PUT 요청 - 에이전트 이벤트 수정: {api_url}")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            print(f"📡 PUT 요청 전송 중...")
+            print(f"   - Method: PUT")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            print(f"   - Payload: {update_data}")
+            response = await client.put(api_url, json=update_data, headers=headers)
+            
+            print(f"📊 PUT 응답 상태 코드: {response.status_code}")
+            print(f"📄 PUT 응답 헤더: {dict(response.headers)}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                state["crud_result"] = f"에이전트 이벤트 수정 완료: {result.get('id', 'N/A')}"
+                print(f"✅ 에이전트 이벤트 수정 완료: {result.get('id', 'N/A')}")
+                print(f"📋 수정된 에이전트 이벤트 정보:")
+                print(f"   - 제목: {result.get('title', 'N/A')}")
+                print(f"   - 설명: {result.get('description', 'N/A')}")
+                print(f"   - 시작: {result.get('start_at', 'N/A')}")
+                print(f"   - 종료: {result.get('end_at', 'N/A')}")
+                print(f"   - 위치: {result.get('location', 'N/A')}")
+                print(f"   - 이벤트 ID: {result.get('id', 'N/A')}")
+            elif response.status_code == 404:
+                error_msg = f"수정할 에이전트 이벤트를 찾을 수 없습니다. (ID: {state['selected_item_id']}) - 해당 이벤트가 존재하지 않거나 현재 사용자의 이벤트가 아닙니다."
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+            else:
+                error_msg = f"에이전트 이벤트 수정 실패: {response.status_code} - {response.text}"
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
+    except Exception as e:
+        error_msg = f"에이전트 이벤트 수정 중 오류 발생: {str(e)}"
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        import traceback
+        traceback.print_exc()
+    
+    return state
+
+async def handle_agent_event_delete(state: Dict, base_url: str, headers: Dict) -> Dict:
+    """에이전트 이벤트 삭제 처리"""
+    print("📅 에이전트 이벤트 삭제 요청 처리 중...")
+    
+    if not state.get("selected_item_id"):
+        error_msg = "삭제할 에이전트 이벤트 ID가 필요합니다. 구체적인 이벤트를 지정해주세요."
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        return state
+    
+    # API 엔드포인트 - agent events API 사용
+    api_url = f"{base_url}/api/v1/agent/events/{state['selected_item_id']}"
+    print(f"🌐 DELETE 요청 - 에이전트 이벤트 삭제: {api_url}")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            print(f"📡 DELETE 요청 전송 중...")
+            print(f"   - Method: DELETE")
+            print(f"   - URL: {api_url}")
+            print(f"   - Headers: {headers}")
+            response = await client.delete(api_url, headers=headers)
+            
+            print(f"📊 DELETE 응답 상태 코드: {response.status_code}")
+            print(f"📄 DELETE 응답 헤더: {dict(response.headers)}")
+            
+            if response.status_code == 200:
+                # 200 OK - 성공적으로 삭제됨
+                state["crud_result"] = f"에이전트 이벤트 삭제 완료: {state['selected_item_id']}"
+                print(f"✅ 에이전트 이벤트 삭제 완료: {state['selected_item_id']}")
+            elif response.status_code == 404:
+                error_msg = f"삭제할 에이전트 이벤트를 찾을 수 없습니다. (ID: {state['selected_item_id']}) - 해당 이벤트가 존재하지 않거나 현재 사용자의 이벤트가 아닙니다."
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+            else:
+                error_msg = f"에이전트 이벤트 삭제 실패: {response.status_code} - {response.text}"
+                state["crud_result"] = error_msg
+                print(f"❌ {error_msg}")
+                print(f"📄 응답 내용: {response.text}")
+    except Exception as e:
+        error_msg = f"에이전트 이벤트 삭제 중 오류 발생: {str(e)}"
+        state["crud_result"] = error_msg
+        print(f"❌ {error_msg}")
+        import traceback
+        traceback.print_exc()
+    
+    return state
+
 def answer_generator(state: Dict) -> Dict:
     user_query = state["initial_input"]
     rag_info = state.get("rag_result", "")
@@ -844,18 +1218,138 @@ def answer_generator(state: Dict) -> Dict:
     })
 
     # 캘린더 API 요청 처리 (calendar_type과 calendar_operation이 설정된 경우)
-    if state.get("calendar_type") and state.get("calendar_operation"):
-        try:
-            import asyncio
+    print(f"🔍 캘린더 API 요청 디버깅:")
+    print(f"   - calendar_type: {state.get('calendar_type')}")
+    print(f"   - calendar_operation: {state.get('calendar_operation')}")
+    print(f"   - agent_task_type: {state.get('agent_task_type')}")
+    print(f"   - agent_task_operation: {state.get('agent_task_operation')}")
+    print(f"   - state keys: {list(state.keys())}")
+    
+    # 두 가지 네이밍 컨벤션 모두 지원
+    calendar_type = state.get("calendar_type") or state.get("agent_task_type")
+    calendar_operation = state.get("calendar_operation") or state.get("agent_task_operation")
+    
+    # calselector에서 가져온 데이터 확인
+    events = state.get("events", [])
+    tasks = state.get("tasks", [])
+    selected_item_id = state.get("selected_item_id")
+    
+    print(f"🔍 CalSelector 데이터 확인:")
+    print(f"   - events 개수: {len(events)}")
+    print(f"   - tasks 개수: {len(tasks)}")
+    print(f"   - selected_item_id: {selected_item_id}")
+    
+    if calendar_type and calendar_operation:
+        print(f"✅ 캘린더 작업 조건 충족 - {calendar_type} + {calendar_operation}")
+        
+        # calselector에서 이미 데이터를 가져왔으므로, 해당 데이터를 활용
+        if calendar_type == "task" and calendar_operation == "read":
+            # 할일 조회: selected_item_id가 있으면 실제 API 호출
+            if selected_item_id:
+                print(f"📋 할일 조회 API 호출 시작... (ID: {selected_item_id})")
+                try:
+                    import asyncio
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    
+                    state = loop.run_until_complete(handle_calendar_api_request(state))
+                    
+                except Exception as e:
+                    print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+            else:
+                # selected_item_id가 없는 경우 CalSelector 데이터 사용
+                if tasks:
+                    print(f"✅ CalSelector에서 가져온 할일 목록 사용:")
+                    for i, task in enumerate(tasks[:5], 1):
+                        print(f"   {i}. [{task.get('task_id', 'N/A')}] {task.get('title', 'N/A')}")
+                    
+                    state["crud_result"] = f"할일 목록 조회 완료: {len(tasks)}개 항목"
+                else:
+                    state["crud_result"] = "조회할 할일이 없습니다."
+                
+        elif calendar_type == "task" and calendar_operation == "create":
+            # 할일 생성: API 호출 필요
+            print(f"📋 할일 생성 API 호출 시작...")
             try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
-            state = loop.run_until_complete(handle_calendar_api_request(state))
-            
-        except Exception as e:
-            print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                state = loop.run_until_complete(handle_calendar_api_request(state))
+                
+            except Exception as e:
+                print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+                
+        elif calendar_type == "task" and calendar_operation == "update":
+            # 할일 수정: API 호출 필요
+            print(f"📋 할일 수정 API 호출 시작...")
+            try:
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                state = loop.run_until_complete(handle_calendar_api_request(state))
+                
+            except Exception as e:
+                print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+                
+        elif calendar_type == "task" and calendar_operation == "delete":
+            # 할일 삭제: API 호출 필요
+            print(f"📋 할일 삭제 API 호출 시작...")
+            try:
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                state = loop.run_until_complete(handle_calendar_api_request(state))
+                
+            except Exception as e:
+                print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+                
+        elif calendar_type == "agent_event":
+            # 에이전트 이벤트 작업: API 호출 필요
+            print(f"📋 에이전트 이벤트 {calendar_operation} API 호출 시작...")
+            try:
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                state = loop.run_until_complete(handle_calendar_api_request(state))
+                
+            except Exception as e:
+                print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+                
+        else:
+            # 기타 작업: API 호출 필요
+            print(f"📋 {calendar_type} {calendar_operation} API 호출 시작...")
+            try:
+                import asyncio
+                try:
+                    loop = asyncio.get_event_loop()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                state = loop.run_until_complete(handle_calendar_api_request(state))
+                
+            except Exception as e:
+                print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+    else:
+        print(f"⚠️  캘린더 API 요청 조건 불충족 - calendar_type 또는 calendar_operation이 설정되지 않음")
 
     return state

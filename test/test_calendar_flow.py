@@ -31,6 +31,7 @@ def test_agent_task_flow():
             "title": "새로운 프로젝트",
             "description": "새로운 프로젝트를 위한 태스크입니다.",
             "status": "pending",
+            "due_at": "2025-06-25T16:22:45.240Z",
             "used_agents": [
                 {
                     "agent_name": "task_router",
@@ -45,7 +46,8 @@ def test_agent_task_flow():
             "input": "태스크 ID 12345의 정보를 조회해줘",
             "agent_task_type": "task",
             "agent_task_operation": "read",
-            "selected_item_id": "12345"
+            "selected_item_id": "12345",
+            "due_at": "2025-06-25T16:22:45.240Z"
         },
         {
             "description": "✏️ 에이전트 태스크 수정",
@@ -53,14 +55,16 @@ def test_agent_task_flow():
             "agent_task_type": "task",
             "agent_task_operation": "update",
             "selected_item_id": "12345",
-            "status": "completed"
+            "status": "completed",
+            "due_at": "2025-06-25T16:22:45.240Z"
         },
         {
             "description": "🗑️ 에이전트 태스크 삭제",
             "input": "태스크 ID 12345를 삭제해줘",
             "agent_task_type": "task",
             "agent_task_operation": "delete",
-            "selected_item_id": "12345"
+            "selected_item_id": "12345",
+            "due_at": "2025-06-25T16:22:45.240Z"
         },
         {
             "description": "📋 복잡한 에이전트 태스크 생성",
@@ -70,6 +74,7 @@ def test_agent_task_flow():
             "title": "다중 에이전트 협업 프로젝트",
             "description": "여러 에이전트가 협업하는 복잡한 프로젝트입니다.",
             "status": "in_progress",
+            "due_at": "2025-06-25T16:22:45.240Z",
             "used_agents": [
                 {
                     "agent_name": "task_router",
@@ -124,7 +129,8 @@ def test_agent_task_flow():
             "description": test_case.get("description"),
             "status": test_case.get("status"),
             "used_agents": test_case.get("used_agents"),
-            "selected_item_id": test_case.get("selected_item_id")
+            "selected_item_id": test_case.get("selected_item_id"),
+            "due_at": test_case.get("due_at", "2025-06-25T16:22:45.240Z")  # 기본값 설정
         }
         
         # 전체 시작 시간
@@ -334,12 +340,40 @@ def test_calendar_flow():
                 calendar_operation = calendar_result.get('calendar_operation')
                 if calendar_type and calendar_operation:
                     print(f"   - 조합: {calendar_type} + {calendar_operation}")
-                    if calendar_type == "event" and calendar_operation == "delete":
-                        print("   🔍 이벤트 삭제 작업 감지!")
-                    elif calendar_type == "task" and calendar_operation == "delete":
-                        print("   🔍 할일 삭제 작업 감지!")
-                    elif calendar_type == "agent_task" and calendar_operation == "delete":
-                        print("   🔍 에이전트 태스크 삭제 작업 감지!")
+                    
+                    # 작업 타입과 CRUD 작업 상세 출력
+                    if calendar_type == "event":
+                        print(f"   📅 이벤트 작업 감지!")
+                        if calendar_operation == "create":
+                            print(f"   ➕ 이벤트 생성 작업")
+                        elif calendar_operation == "read":
+                            print(f"   👁️ 이벤트 조회 작업")
+                        elif calendar_operation == "update":
+                            print(f"   ✏️ 이벤트 수정 작업")
+                        elif calendar_operation == "delete":
+                            print(f"   🗑️ 이벤트 삭제 작업")
+                    elif calendar_type == "task":
+                        print(f"   📋 할일 작업 감지!")
+                        if calendar_operation == "create":
+                            print(f"   ➕ 할일 생성 작업")
+                        elif calendar_operation == "read":
+                            print(f"   👁️ 할일 조회 작업")
+                        elif calendar_operation == "update":
+                            print(f"   ✏️ 할일 수정 작업")
+                        elif calendar_operation == "delete":
+                            print(f"   🗑️ 할일 삭제 작업")
+                    elif calendar_type == "agent_task":
+                        print(f"   🤖 에이전트 태스크 작업 감지!")
+                        if calendar_operation == "create":
+                            print(f"   ➕ 에이전트 태스크 생성 작업")
+                        elif calendar_operation == "read":
+                            print(f"   👁️ 에이전트 태스크 조회 작업")
+                        elif calendar_operation == "update":
+                            print(f"   ✏️ 에이전트 태스크 수정 작업")
+                        elif calendar_operation == "delete":
+                            print(f"   🗑️ 에이전트 태스크 삭제 작업")
+                    else:
+                        print(f"   ❓ 알 수 없는 타입: {calendar_type}")
                 
                 # 페이로드 정보 출력
                 payload = calendar_result.get('event_payload', {})
@@ -349,11 +383,26 @@ def test_calendar_flow():
                     print(f"   - 종료 시간: {payload.get('end_at', 'N/A')}")
                     print(f"   - 마감 시간: {payload.get('due_at', 'N/A')}")
                     print(f"   - 이벤트 타입: {payload.get('event_type', 'N/A')}")
+                    
+                    # 페이로드 타입에 따른 추가 정보
+                    if payload.get('event_type') == 'task':
+                        print(f"   📋 할일 정보:")
+                        print(f"     - 상태: {payload.get('status', 'N/A')}")
+                        print(f"     - 우선순위: {payload.get('priority', 'N/A')}")
+                    else:
+                        print(f"   📅 이벤트 정보:")
+                        print(f"     - 반복: {payload.get('recurrence', 'N/A')}")
+                        print(f"     - 위치: {payload.get('location', 'N/A')}")
                 
                 # selected_item_id 확인 (삭제/수정 시 중요)
                 selected_item_id = calendar_result.get('selected_item_id')
                 if selected_item_id:
                     print(f"   - 선택된 항목 ID: {selected_item_id}")
+                    # ID 타입 추정
+                    if selected_item_id.startswith('task_'):
+                        print(f"   📋 할일 ID로 추정됨")
+                    else:
+                        print(f"   📅 이벤트 ID로 추정됨")
                 
                 # calendar_agent가 answer_planner로 라우팅하는지 확인
                 if calendar_result.get('next_node') == 'answer_planner':
@@ -390,6 +439,87 @@ def test_calendar_flow():
                         print(f"     - 이벤트 수: {data.get('event_count', 0)}개")
                         print(f"     - 태스크 수: {data.get('task_count', 0)}개")
                         print(f"     - 총 항목 수: {data.get('total_count', 0)}개")
+                
+                # 통합 캘린더 데이터 확인
+                unified_data = selector_result.get('unified_calendar_data', {})
+                if unified_data:
+                    print(f"   📊 통합 캘린더 데이터:")
+                    print(f"     - 이벤트 수: {len(unified_data.get('events', []))}개")
+                    print(f"     - 태스크 수: {len(unified_data.get('tasks', []))}개")
+                    print(f"     - 총 항목 수: {unified_data.get('total_count', 0)}개")
+                
+                # 개별 events와 tasks 확인
+                events = selector_result.get('events', [])
+                tasks = selector_result.get('tasks', [])
+                
+                if events:
+                    print(f"   📅 Events 목록 (처음 3개):")
+                    for i, event in enumerate(events[:3], 1):
+                        event_id = event.get('id', 'N/A')
+                        title = event.get('title', 'N/A')
+                        start_at = event.get('start_at', 'N/A')
+                        print(f"     {i}. [{event_id}] {title} (시작: {start_at})")
+                    if len(events) > 3:
+                        print(f"     ... 외 {len(events) - 3}개 더")
+                else:
+                    print(f"   📅 Events: 없음")
+                
+                if tasks:
+                    print(f"   📝 Tasks 목록 (처음 3개):")
+                    for i, task in enumerate(tasks[:3], 1):
+                        task_id = task.get('task_id', 'N/A')
+                        title = task.get('title', 'N/A')
+                        status = task.get('status', 'N/A')
+                        print(f"     {i}. [{task_id}] {title} (상태: {status})")
+                    if len(tasks) > 3:
+                        print(f"     ... 외 {len(tasks) - 3}개 더")
+                else:
+                    print(f"   📝 Tasks: 없음")
+                
+                # 선택된 항목 상세 정보
+                selected_item_id = selector_result.get('selected_item_id')
+                if selected_item_id:
+                    # 선택된 항목 찾기
+                    selected_item = None
+                    for event in events:
+                        if event.get('id') == selected_item_id:
+                            selected_item = event
+                            break
+                    for task in tasks:
+                        if task.get('task_id') == selected_item_id:
+                            selected_item = task
+                            break
+                    
+                    if selected_item:
+                        item_type = "이벤트" if 'start_at' in selected_item else "태스크"
+                        title = selected_item.get('title', 'N/A')
+                        print(f"   🎯 선택된 항목 상세:")
+                        print(f"     - 유형: {item_type}")
+                        print(f"     - 제목: {title}")
+                        print(f"     - ID: {selected_item_id}")
+                        if item_type == "이벤트":
+                            print(f"     - 시작: {selected_item.get('start_at', 'N/A')}")
+                            print(f"     - 종료: {selected_item.get('end_at', 'N/A')}")
+                        else:
+                            print(f"     - 상태: {selected_item.get('status', 'N/A')}")
+                            print(f"     - 마감일: {selected_item.get('due_at', 'N/A')}")
+                
+                # 에이전트 메시지 확인
+                agent_messages = selector_result.get('agent_messages', [])
+                if agent_messages:
+                    print(f"   🤖 에이전트 메시지 ({len(agent_messages)}개):")
+                    for i, msg in enumerate(agent_messages[-2:], 1):  # 최근 2개만
+                        agent = msg.get('agent', 'unknown')
+                        summary = msg.get('summary', 'N/A')
+                        print(f"     {i}. {agent}: {summary}")
+                
+                # 후보 항목 찾기 결과 확인
+                if selected_item_id:
+                    print(f"✅ CalSelector: 후보 항목을 찾았습니다 (ID: {selected_item_id})")
+                else:
+                    print(f"⚠️  CalSelector: 후보 항목을 찾지 못했습니다")
+                    print(f"   - 일정이나 할일이 없거나, 검색 조건에 맞는 항목이 없습니다")
+                    print(f"   - 다음 노드(answer_generator)로 넘어가서 적절한 응답을 생성합니다")
                 
                 # calselector가 answer_generator로 라우팅하는지 확인
                 if selector_result.get('next_node') == 'answer_generator':
@@ -812,6 +942,87 @@ def test_interactive_calendar_flow():
                         print(f"     - 이벤트 수: {data.get('event_count', 0)}개")
                         print(f"     - 태스크 수: {data.get('task_count', 0)}개")
                         print(f"     - 총 항목 수: {data.get('total_count', 0)}개")
+                
+                # 통합 캘린더 데이터 확인
+                unified_data = selector_result.get('unified_calendar_data', {})
+                if unified_data:
+                    print(f"   📊 통합 캘린더 데이터:")
+                    print(f"     - 이벤트 수: {len(unified_data.get('events', []))}개")
+                    print(f"     - 태스크 수: {len(unified_data.get('tasks', []))}개")
+                    print(f"     - 총 항목 수: {unified_data.get('total_count', 0)}개")
+                
+                # 개별 events와 tasks 확인
+                events = selector_result.get('events', [])
+                tasks = selector_result.get('tasks', [])
+                
+                if events:
+                    print(f"   📅 Events 목록 (처음 3개):")
+                    for i, event in enumerate(events[:3], 1):
+                        event_id = event.get('id', 'N/A')
+                        title = event.get('title', 'N/A')
+                        start_at = event.get('start_at', 'N/A')
+                        print(f"     {i}. [{event_id}] {title} (시작: {start_at})")
+                    if len(events) > 3:
+                        print(f"     ... 외 {len(events) - 3}개 더")
+                else:
+                    print(f"   📅 Events: 없음")
+                
+                if tasks:
+                    print(f"   📝 Tasks 목록 (처음 3개):")
+                    for i, task in enumerate(tasks[:3], 1):
+                        task_id = task.get('task_id', 'N/A')
+                        title = task.get('title', 'N/A')
+                        status = task.get('status', 'N/A')
+                        print(f"     {i}. [{task_id}] {title} (상태: {status})")
+                    if len(tasks) > 3:
+                        print(f"     ... 외 {len(tasks) - 3}개 더")
+                else:
+                    print(f"   📝 Tasks: 없음")
+                
+                # 선택된 항목 상세 정보
+                selected_item_id = selector_result.get('selected_item_id')
+                if selected_item_id:
+                    # 선택된 항목 찾기
+                    selected_item = None
+                    for event in events:
+                        if event.get('id') == selected_item_id:
+                            selected_item = event
+                            break
+                    for task in tasks:
+                        if task.get('task_id') == selected_item_id:
+                            selected_item = task
+                            break
+                    
+                    if selected_item:
+                        item_type = "이벤트" if 'start_at' in selected_item else "태스크"
+                        title = selected_item.get('title', 'N/A')
+                        print(f"   🎯 선택된 항목 상세:")
+                        print(f"     - 유형: {item_type}")
+                        print(f"     - 제목: {title}")
+                        print(f"     - ID: {selected_item_id}")
+                        if item_type == "이벤트":
+                            print(f"     - 시작: {selected_item.get('start_at', 'N/A')}")
+                            print(f"     - 종료: {selected_item.get('end_at', 'N/A')}")
+                        else:
+                            print(f"     - 상태: {selected_item.get('status', 'N/A')}")
+                            print(f"     - 마감일: {selected_item.get('due_at', 'N/A')}")
+                
+                # 에이전트 메시지 확인
+                agent_messages = selector_result.get('agent_messages', [])
+                if agent_messages:
+                    print(f"   🤖 에이전트 메시지 ({len(agent_messages)}개):")
+                    for i, msg in enumerate(agent_messages[-2:], 1):  # 최근 2개만
+                        agent = msg.get('agent', 'unknown')
+                        summary = msg.get('summary', 'N/A')
+                        print(f"     {i}. {agent}: {summary}")
+                
+                # 후보 항목 찾기 결과 확인
+                if selected_item_id:
+                    print(f"✅ CalSelector: 후보 항목을 찾았습니다 (ID: {selected_item_id})")
+                else:
+                    print(f"⚠️  CalSelector: 후보 항목을 찾지 못했습니다")
+                    print(f"   - 일정이나 할일이 없거나, 검색 조건에 맞는 항목이 없습니다")
+                    print(f"   - 다음 노드(answer_generator)로 넘어가서 적절한 응답을 생성합니다")
                 
                 # calselector가 answer_generator로 라우팅하는지 확인
                 if selector_result.get('next_node') == 'answer_generator':

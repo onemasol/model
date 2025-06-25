@@ -801,13 +801,11 @@ async def create_agent_task_for_calendar_operation(
         
         # 태스크 제목과 설명 생성
         task_title = f"{operation_type}: {state.get('title', '제목 없음')}"
-        task_description = f"""
-작업 타입: {operation_type}
+        task_description = f"""작업 타입: {operation_type}
 사용자 질문: {state.get('initial_input', '')}
 생성된 항목 ID: {calendar_item_id}
 사용된 에이전트: {[agent['agent_name'] for agent in used_agents]}
-처리 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-        """.strip()
+처리 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""".strip()
         
         # access_token 추출 (Bearer 토큰에서)
         access_token = None
@@ -858,12 +856,10 @@ async def create_agent_event_for_calendar_operation(
         
         # 에이전트 이벤트 제목과 설명 생성
         event_title = f"{state.get('title', '제목 없음')}"
-        event_description = f"""
-사용자 요청으로 캘린더 이벤트를 생성했습니다.
+        event_description = f"""사용자 요청으로 캘린더 이벤트를 생성했습니다.
 사용자 질문: {state.get('initial_input', '')}
 생성된 이벤트 ID: {calendar_event_id}
-생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-        """.strip()
+생성 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}""".strip()
         
         # 위치 정보 (기본값 또는 event_payload에서 추출)
         location = state.get("location", "위치 미지정")

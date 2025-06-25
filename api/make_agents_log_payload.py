@@ -1,31 +1,37 @@
 import uuid
-import re
+from api.getset import (
+    set_current_session_id, get_current_session_id,
+    set_current_access_token, get_current_access_token,
+    set_current_user_input, set_current_ocr_result
+)
 
 def make_agent_logs_payload(state: dict) -> dict:
-    user_message = state["messages"][-1] if state.get("messages") else ""
-    agent_response = state.get("final_answer") or state.get("final_output") or ""
-    
-    # session_id는 state에서 가져오거나 기본값 사용
-    session_id = state.get("session_id", "3fa85f64-5717-4562-b3fc-2c963f66afa6")
-    
-    # 기본 payload 구성 (필수 필드만)
+    user_message = state.get("initial_input", "")
+    agent_response = state.get("final_output", "") or ""
+    event_id = ""
+    task_id = ""
+
+    schedule_type = state.get("schedule_type")
+    event_payload = state.get("event_payload", {})
+
+    if schedule_type == "event":
+        event_id = event_payload.get("id", "")
+    elif schedule_type == "task":
+        task_id = event_payload.get("id", "")
+    else:
+        print("🔍 no schedule type found in state")
+
     payload = {
-        "session_id": session_id,
         "user_message": user_message,
-        "agent_response": agent_response
+        "agent_response": agent_response,
+        "event_id": event_id,
+        "task_id": task_id,
+        "session_id": get_current_session_id(),
     }
-    
-    # crud_result에서 ID 추출
-    crud_result = state.get("crud_result", "")
-    
-    # 이벤트 ID 추출 (예: "이벤트 생성 완료: da2e0f41-aef8-4495-ab8f-a6dd325995cd")
-    event_match = re.search(r'이벤트 생성 완료: ([a-f0-9-]{36})', crud_result)
-    if event_match:
-        payload["event_id"] = event_match.group(1)
-    
-    # 태스크 ID 추출 (예: "할일 생성 완료: da2e0f41-aef8-4495-ab8f-a6dd325995cd")
-    task_match = re.search(r'할일 생성 완료: ([a-f0-9-]{36})', crud_result)
-    if task_match:
-        payload["task_id"] = task_match.group(1)
-    
+
+    # Remove empty ids
+    if not payload["event_id"]:
+        payload.pop("event_id")
+    if not payload["task_id"]:
+        payload.pop("task_id")
     return payload

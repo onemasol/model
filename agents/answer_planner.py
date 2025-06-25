@@ -52,7 +52,7 @@ def answer_planner(state: Dict) -> Dict:
         """
 
     response = model.invoke(prompt).content.strip()
-    state["final_answer"] = response  # answer_generator에서 정제/통합하도록 state에 미리 기록
+    state["final_output"] = response  # answer_generator에서 정제/통합하도록 state에 미리 기록
 
     # answer_generator로 라우팅
     state["next_node"] = "answer_generator"

@@ -10,7 +10,7 @@ without circular imports.
 # module-level variables for shared state
 # None으로 다시 초기화하여 모듈이 로드될 때 상태가 초기화되도록 해야함.
 _current_session_id: str | None = "3fa85f64-5717-4562-b3fc-2c963f66afa6" 
-_current_access_token: str | None = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4Nzc4MDQsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.h9OaG0pmu7xB0CwXHuQU7_v1C5v4bmE21FfU7kenYOA"
+_current_access_token: str | None = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4ODM0NzAsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.nFY7AHNkB6ipTGEeLZH4Xu6e04FQ8d0FVtT76U77m6g"
 _current_user_input: str | None = """
 종합
 소득세는

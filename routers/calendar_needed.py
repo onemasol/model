@@ -42,13 +42,13 @@ def calendar_needed(state: Dict) -> Dict:
 
     response = model.invoke(prompt).content.strip().upper()
 
-    if "CAL" in response:
-        state["next_node"] = "calendar_agent"
-    elif "NO_CAL" in response:
+    if "NO_CAL" in response:
         state["next_node"] = "answer_planner"
+    elif "CAL" in response:
+        state["next_node"] = "calendar_agent"
     else:
         state["next_node"] = "answer_planner"
-        state["final_answer"] = "[calendar_needed] 판단 실패: 답변 생성기로 이동합니다."
+        state["final_output"] = "[calendar_needed] 판단 실패: 답변 생성기로 이동합니다."
 
     # 라우터 판단 기록
     state.setdefault("router_messages", []).append({

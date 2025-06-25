@@ -86,7 +86,7 @@ def test_interactive_calendar_flow():
             "rag_result": None,
             "search_result": None,
             "crud_result": None,
-            "final_answer": None,
+            "final_output": None,
             "next_node": None,
             "agent_messages": [],
         }
@@ -379,8 +379,8 @@ def test_interactive_calendar_flow():
             step_end_time = time.time()
             step_duration = step_end_time - step_start_time
             
-            final_answer = answer_result.get('final_answer')
-            print(f"   → 최종 답변: {final_answer}")
+            final_output = answer_result.get('final_output')
+            print(f"   → 최종 답변: {final_output}")
             print(f"   → 실행 시간: {step_duration:.2f}초")
             
             # API 요청 결과 확인
@@ -408,7 +408,7 @@ def test_interactive_calendar_flow():
             else:
                 print(f"🎯 API 요청: ❌ 발생하지 않음")
             
-            if final_answer:
+            if final_output:
                 print("\n✅ 전체 플로우 성공!")
             else:
                 print("\n❌ 최종 답변 생성 실패")

@@ -1165,7 +1165,7 @@ def answer_generator(state: Dict) -> Dict:
     rag_info = state.get("rag_result", "")
     web_info = state.get("search_result", "")
     crud_info = state.get("crud_result", "")
-    prev_answer = state.get("final_answer", "")  # answer_planner/이전 에이전트 답변
+    prev_answer = state.get("final_output", "")  # answer_planner/이전 에이전트 답변
 
     prompt = f"""
     당신은 '요식업 자영업자'를 도와주는 실무 전문 어시스턴트입니다.  
@@ -1202,7 +1202,7 @@ def answer_generator(state: Dict) -> Dict:
     response = model.invoke(prompt)
     final_response = response.content.strip()
 
-    state["final_answer"] = final_response
+    state["final_output"] = final_response
     state.setdefault("agent_messages", []).append({
         "agent": "answer_generator",
         "input_snapshot": {
@@ -1333,18 +1333,10 @@ def answer_generator(state: Dict) -> Dict:
                 print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
                 
         else:
-            # 기타 작업: API 호출 필요
-            print(f"📋 {calendar_type} {calendar_operation} API 호출 시작...")
+            # 기타 작업: 캘린더 API 호출하지 않음
+            print(f"⚠️ 기타 calendar_type/calendar_operation 조합 - API 호출하지 않음")
             try:
-                import asyncio
-                try:
-                    loop = asyncio.get_event_loop()
-                except RuntimeError:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                
-                state = loop.run_until_complete(handle_calendar_api_request(state))
-                
+                state["crud_result"] = "지원하지 않는 캘린더 작업이거나 API 호출 조건 불충족"
             except Exception as e:
                 print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
     else:
@@ -1373,6 +1365,6 @@ def answer_generator(state: Dict) -> Dict:
         state["log_sent"] = send_log_to_backend(payload)
     except Exception as e:
         state["log_sent"] = False
-        print(f"❌ 로그 전송 중 오류 발생: {str(e)}")
+        print(f"❌ 현운 로그 전송 중 오류 발생: {str(e)}")
 
     return state

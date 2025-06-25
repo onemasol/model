@@ -56,7 +56,7 @@ def websearch_critic(state: Dict) -> Dict:
 
         if retry_count > MAX_RETRY:
             state["next_node"] = "answer_generator"
-            state["final_answer"] = (
+            state["final_output"] = (
                 "[websearch_critic] 웹검색 반복 한도 초과: 답변 생성기로 이동합니다.\n"
                 f"마지막 검색 쿼리: {state.get('websearch_query','')}\n"
                 f"마지막 검색 결과: {search_result[:400]}"
@@ -69,7 +69,7 @@ def websearch_critic(state: Dict) -> Dict:
     else:
         # 에러 처리: 모호한 응답일 경우 종료
         state["next_node"] = "answer_generator"
-        state["final_answer"] = "[websearch_critic] 판단 실패: 답변 생성기로 이동합니다."
+        state["final_output"] = "[websearch_critic] 판단 실패: 답변 생성기로 이동합니다."
 
     # 평가 기록 저장
     state.setdefault("router_messages", []).append({

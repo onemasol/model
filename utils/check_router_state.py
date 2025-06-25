@@ -42,7 +42,7 @@ for router_name, router_func in router_functions.items():
         "rag_result": None,
         "search_result": None,
         "crud_result": None,
-        "final_answer": None,
+        "final_output": None,
         "next_node": None,
         "agent_messages": [],
         "router_messages": [],

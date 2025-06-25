@@ -56,7 +56,7 @@ def rag_quality_critic(state: Dict) -> Dict:
         state["next_node"] = "websearch_agent"
     else:
         state["next_node"] = "answer_generator"
-        state["final_answer"] = "[rag_quality_critic] 판단 실패: 답변을 생성기로 넘깁니다."
+        state["final_output"] = "[rag_quality_critic] 판단 실패: 답변을 생성기로 넘깁니다."
 
     # 라우터 로그 남기기
     state.setdefault("router_messages", []).append({

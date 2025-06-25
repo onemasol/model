@@ -3,6 +3,12 @@ from langchain_ollama import ChatOllama
 import os
 import torch
 
+from api.getset import (
+    set_current_session_id, get_current_session_id,
+    set_current_access_token, get_current_access_token,
+    set_current_user_input, set_current_ocr_result
+)
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
 # Initialize the ChatOllama model
 model = ChatOllama(
@@ -21,6 +27,8 @@ def task_router(state: AgentState):
     - event: 특정 시간에 진행되는 일정 (예: 회의, 약속)
     - task: 완료해야 할 작업 (예: 보고서 작성, 이메일 확인)
     """
+    state["access_token"] = get_current_access_token()
+
     user_query = state["initial_input"]
 
     # Read system prompt from file

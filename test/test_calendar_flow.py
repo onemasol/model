@@ -264,11 +264,14 @@ def test_calendar_flow():
     ]
     
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     print("=" * 80)
     print("📅 Calendar Flow 테스트 (task_router → calendar_agent → answer_planner → answer_generator)")
     print("⚠️  실제 API 요청이 발생할 수 있습니다!")
     print("=" * 80)
     
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     for i, test_case in enumerate(test_cases, 1):
@@ -452,6 +455,7 @@ def test_calendar_flow():
             print(f"   - 실행 시간: {step_duration:.2f}초")
             
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             # 디버깅: 현재 상태의 중요 필드들 확인
             print(f"   - 현재 상태 디버깅:")
             print(f"     - calendar_type: {current_state.get('calendar_type', 'N/A')}")
@@ -460,6 +464,8 @@ def test_calendar_flow():
             print(f"     - agent_task_operation: {current_state.get('agent_task_operation', 'N/A')}")
             print(f"     - selected_item_id: {current_state.get('selected_item_id', 'N/A')}")
             
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
             # API 요청 결과 확인
@@ -724,6 +730,11 @@ def test_interactive_calendar_flow():
             if crud_result:
                 print(f"   🎯 API 요청 결과: {crud_result}")
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+            else:
+                print("   ⚠️  API 요청 결과가 없습니다.")
+>>>>>>> Stashed changes
 =======
             else:
                 print("   ⚠️  API 요청 결과가 없습니다.")
@@ -741,6 +752,7 @@ def test_interactive_calendar_flow():
             total_duration = total_end_time - total_start_time
             print(f"\n⏱️  총 실행 시간: {total_duration:.2f}초")
             
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
             # 실제 실행된 플로우 표시
             actual_flow = []
@@ -769,6 +781,8 @@ def test_interactive_calendar_flow():
             
             print(f"🔄 실제 플로우: {' → '.join(actual_flow)}")
             
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
             # API 요청 여부 표시

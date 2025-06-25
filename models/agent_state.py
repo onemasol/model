@@ -18,6 +18,13 @@ class AgentState(TypedDict):
     agent_messages: Annotated[List[str], "agent_conversation_history"]
     router_messages: Annotated[List[str], "router_conversation_history"]
 
+    ### 프론트엔드에서 전송되는 데이터
+    user_id: Annotated[str, "사용자 ID"]
+    access_token: Annotated[str, "액세스 토큰"]
+    session_id: Annotated[str, "세션 ID (UUID)"]
+    user_input: Annotated[str, "사용자 입력"]
+    ocr_result: Annotated[Optional[str], "OCR 결과 (선택사항)"]
+
     ### 캘린더 관련 플레이스홀더 (5개 필드)
     title: Annotated[Optional[str], "이벤트/할일 제목"]
     start_at: Annotated[Optional[str], "시작 시간 (ISO 형식, event용)"]

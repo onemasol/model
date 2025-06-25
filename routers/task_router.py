@@ -28,6 +28,7 @@ def task_router(state: AgentState):
     - task: 완료해야 할 작업 (예: 보고서 작성, 이메일 확인)
     """
     state["access_token"] = get_current_access_token()
+    state["session_id"] = get_current_session_id()
 
     user_query = state["initial_input"]
 

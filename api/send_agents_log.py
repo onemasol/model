@@ -1,12 +1,14 @@
 import requests
 
 LOG_API_URL = "http://52.79.95.55:8000/api/v1/agent/logs"
-access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA3NzUzMDAsInN1YiI6IjFiYTc2OTMzLWQ1ZTUtNDA0My05ODAzLWUyZTM3MTU5MjhkMyJ9.0fXJjZmoayPoVQNHAFEV3Q2sNhCL3yUxCNySRRl2E1Y"
+access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTA4NzgyOTcsInN1YiI6IjRhNzI4OTUyLTUzYTAtNGFiZS1hZThjLTBmZjQ0MGQ2NTg1ZSJ9.9r4F6Lazb0P0utAbh7FdLM-tTz5zOJUcxgdrX8vhMmo"
 
 def send_log_to_backend(payload: dict) -> bool:
     headers = {
-    "Authorization": f"Bearer {access_token}"
-}
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "accept": "application/json"
+    }
     
     try:
         response = requests.post(LOG_API_URL, json=payload, headers=headers)

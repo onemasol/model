@@ -1370,7 +1370,9 @@ def answer_generator(state: Dict) -> Dict:
     try:
         payload = make_agent_logs_payload(state)
         send_log_to_backend(payload)
+        state["log_sent"] = send_log_to_backend(payload)
     except Exception as e:
+        state["log_sent"] = False
         print(f"❌ 로그 전송 중 오류 발생: {str(e)}")
 
     return state

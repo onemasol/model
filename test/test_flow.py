@@ -61,8 +61,10 @@ def test_interactive_calendar_flow():
     print("   🏠 '오늘 저녁 7시에 집 청소 2시간 추가해줘'")
     print("   📚 '매일 밤 10시에 독서 30분 추가해줘'")
     print("   🎵 '내일 오후 4시에 피아노 연습 1시간 추가해줘'")
+
+    start = True
     
-    while True:
+    while start:
         # Fetch latest user input and OCR result from global getters
         user_input = merge_input(get_current_user_input(), get_current_ocr_result())
         
@@ -415,6 +417,8 @@ def test_interactive_calendar_flow():
             print(f"\n❌ 오류 발생: {str(e)}")
             import traceback
             traceback.print_exc()
+        finally:
+            start = False
 
 if __name__ == "__main__":
     print("🎉 Flow 테스트를 시작합니다! 🎉")

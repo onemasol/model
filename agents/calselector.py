@@ -172,7 +172,12 @@ class CandidateSelector:
         # 각 항목에 대해 유사도 점수 계산
         scored_items = []
         for item in items:
-            item_id = item.get('id') or item.get('task_id')
+            # 이벤트인지 할일인지 확인하여 올바른 ID 필드 사용
+            if item.get('event_type') == 'task' or 'task_id' in item:
+                item_id = item.get('task_id')
+            else:
+                item_id = item.get('id')
+            
             if item_id:
                 similarity_score = self.calculate_similarity_score(query_info, item)
                 scored_items.append({
@@ -306,8 +311,15 @@ class CalSelector:
         try:
             # 상태 정보 추출
             schedule_type = state.get("schedule_type", "all")
-            operation_type = state.get("operation_type", "read")
+            operation_type = state.get("operation_type") or state.get("calendar_operation", "read")
             query_info = state.get("query_info", {})
+            
+            # 디버깅: 상태 정보 출력
+            print(f"🔍 CalSelector 디버깅:")
+            print(f"   - schedule_type: {schedule_type}")
+            print(f"   - operation_type: {operation_type}")
+            print(f"   - query_info: {query_info}")
+            print(f"   - state keys: {list(state.keys())}")
             
             # API 호출
             api_result = self._call_calendar_api(state)
@@ -335,17 +347,21 @@ class CalSelector:
         user_id = self.api_client.get_user_id(state)
         headers = self.api_client.create_headers(access_token)
         
+        # operation_type을 올바르게 가져오기
+        operation_type = state.get("operation_type") or state.get("calendar_operation", "read")
+        
         api_request = {
             "api_type": "calendar_unified",
             "method": "GET",
             "endpoint": f"/api/v1/calendar/{user_id}/all",
             "params": {},
             "headers": headers,
-            "operation": state.get("operation_type", "read"),
+            "operation": operation_type,
             "event_type": "all"
         }
         
         print(f"=== CalSelector: 통합 조회 API 호출 중... ===")
+        print(f"   - operation_type: {operation_type}")
         api_result = self.api_client.call_api(headers, user_id)
         
         return {
@@ -378,15 +394,39 @@ class CalSelector:
         """작업 유형에 따라 후보를 선택합니다."""
         selected_item_id = None
         
+        print(f"\n🔍 _select_candidates 디버깅:")
+        print(f"   - all_items 개수: {len(all_items)}")
+        print(f"   - query_info: {query_info}")
+        print(f"   - operation_type: {operation_type}")
+        
+        if all_items:
+            print(f"   - 첫 번째 항목: {all_items[0]}")
+            # 첫 번째 항목의 ID 필드들 확인
+            first_item = all_items[0]
+            print(f"   - 첫 번째 항목 ID 필드들:")
+            print(f"     • id: {first_item.get('id', 'N/A')}")
+            print(f"     • task_id: {first_item.get('task_id', 'N/A')}")
+            print(f"     • event_type: {first_item.get('event_type', 'N/A')}")
+            print(f"     • title: {first_item.get('title', 'N/A')}")
+        
         if all_items and query_info:
             if operation_type == "read":
                 # READ 작업: 첫 번째 항목만 선택
                 print(f"\n📋 READ 작업: 첫 번째 항목 선택")
                 if all_items:
-                    item_id = all_items[0].get('id') or all_items[0].get('task_id')
+                    # 이벤트인지 할일인지 확인하여 올바른 ID 필드 사용
+                    first_item = all_items[0]
+                    if first_item.get('event_type') == 'task' or 'task_id' in first_item:
+                        item_id = first_item.get('task_id')
+                        print(f"   - 할일로 판단: task_id 사용")
+                    else:
+                        item_id = first_item.get('id')
+                        print(f"   - 이벤트로 판단: id 사용")
+                    
                     if item_id:
                         selected_item_id = item_id
-                        print(f"   - 선택된 항목: {all_items[0].get('title', 'N/A')}")
+                        print(f"   - 선택된 항목: {first_item.get('title', 'N/A')}")
+                        print(f"   - 선택된 ID: {item_id}")
             else:
                 # UPDATE/DELETE 작업: 유사도 기반 선택
                 print(f"\n🎯 유사도 기반 후보 선택 중...")
@@ -397,11 +437,21 @@ class CalSelector:
             # 쿼리 정보가 없거나 항목이 없는 경우 첫 번째 항목 선택
             print(f"\n⚠️ 쿼리 정보가 없어 첫 번째 항목을 선택합니다.")
             if all_items:
-                item_id = all_items[0].get('id') or all_items[0].get('task_id')
+                # 이벤트인지 할일인지 확인하여 올바른 ID 필드 사용
+                first_item = all_items[0]
+                if first_item.get('event_type') == 'task' or 'task_id' in first_item:
+                    item_id = first_item.get('task_id')
+                    print(f"   - 할일로 판단: task_id 사용")
+                else:
+                    item_id = first_item.get('id')
+                    print(f"   - 이벤트로 판단: id 사용")
+                
                 if item_id:
                     selected_item_id = item_id
-                    print(f"   - 선택된 항목: {all_items[0].get('title', 'N/A')}")
+                    print(f"   - 선택된 항목: {first_item.get('title', 'N/A')}")
+                    print(f"   - 선택된 ID: {item_id}")
         
+        print(f"🔍 최종 선택된 항목 ID: {selected_item_id}")
         return selected_item_id
     
     def _update_state(self, state: Dict[str, Any], api_result: Dict[str, Any], 

@@ -8,16 +8,16 @@ from pydantic import BaseModel
 from typing import Optional
 import uuid
 
+from api.getset import (
+    set_current_session_id, get_current_session_id,
+    set_current_access_token, get_current_access_token,
+    set_current_user_input, set_current_ocr_result
+)
+
 # Import your existing execution function (adjust import path as necessary)
 from test.test_flow import test_interactive_calendar_flow
 
 app = FastAPI()
-
-# Global variables for session and access token
-_current_session_id: Optional[str] = None
-_current_access_token: Optional[str] = None
-_current_user_input: Optional[str] = None
-_current_ocr_result: Optional[str] = None
 
 class InitRequest(BaseModel):
     user_id: str
@@ -39,28 +39,23 @@ class AgentResponse(BaseModel):
 
 @app.post("/v1/chat/init", response_model=AgentResponse)
 def start_session(req: InitRequest):
-    global _current_session_id, _current_access_token, _current_user_input, _current_ocr_result
-    # Store incoming access token and generate new session ID
-    _current_access_token = req.access_token
+    set_current_access_token(req.access_token)
     session_id = str(uuid.uuid4())
-    _current_session_id = session_id
-    _current_user_input = req.user_input
-    _current_ocr_result = req.ocr_result
+    set_current_session_id(session_id)
+    set_current_user_input(req.user_input)
+    set_current_ocr_result(req.ocr_result)
     # Call your model execution function
     response_text = test_interactive_calendar_flow()
     return AgentResponse(session_id=session_id, response=response_text)
 
 @app.post("/v1/chat/message", response_model=AgentResponse)
 def session_messages(req: MessageRequest):
-    # Validate session ID
-    if _current_session_id != req.session_id:
+    if get_current_session_id() != req.session_id:
         raise HTTPException(status_code=401, detail="Invalid session_id")
-    # If access_token provided, validate it
-    if req.access_token and req.access_token != _current_access_token:
+    if req.access_token and req.access_token != get_current_access_token():
         raise HTTPException(status_code=401, detail="Invalid access_token")
-    global _current_user_input, _current_ocr_result
-    _current_user_input = req.user_input
-    _current_ocr_result = req.ocr_result
+    set_current_user_input(req.user_input)
+    set_current_ocr_result(req.ocr_result)
     # Call your model execution function with existing session
     response_text = test_interactive_calendar_flow()
     return AgentResponse(session_id=req.session_id, response=response_text)

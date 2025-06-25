@@ -7,7 +7,12 @@ from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.api2 import _current_session_id, _current_access_token, _current_user_input, _current_ocr_result
+from api.getset import (
+    get_current_session_id,
+    get_current_access_token,
+    get_current_user_input,
+    get_current_ocr_result,
+)
 
 from routers.task_router import task_router
 from agents.calendar_agent import calendar_agent
@@ -58,8 +63,8 @@ def test_interactive_calendar_flow():
     print("   🎵 '내일 오후 4시에 피아노 연습 1시간 추가해줘'")
     
     while True:
-        # Fetch latest user input and OCR result from global variables
-        user_input = merge_input(_current_user_input, _current_ocr_result)
+        # Fetch latest user input and OCR result from global getters
+        user_input = merge_input(get_current_user_input(), get_current_ocr_result())
         
         # 종료 조건 확인
         if user_input.lower() in ['quit', 'exit', 'q']:

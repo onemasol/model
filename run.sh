@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Ensure project root is on PYTHONPATH for module imports
+
+export PYTHONPATH="$(cd "$(dirname "$0")" && pwd)"
+
 # 실행할 기본 파일 설정
 DEFAULT_SCRIPT="/root/model/test/test_flow.py"
 

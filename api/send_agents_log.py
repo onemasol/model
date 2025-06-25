@@ -1,6 +1,6 @@
 import requests
 
-LOG_API_URL = "http://your.api.endpoint/agent_logs"
+LOG_API_URL = "http://52.79.95.55:8000/api/v1/agent/logs"
 
 def send_log_to_backend(payload: dict) -> bool:
     try:

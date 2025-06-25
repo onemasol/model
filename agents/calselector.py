@@ -220,34 +220,15 @@ class CalendarAPIClient:
     
     def get_access_token(self, state: Dict[str, Any]) -> Optional[str]:
         """액세스 토큰을 가져옵니다."""
-        # 1. state에서 직접 access_token 가져오기
-        access_token = state.get("access_token")
-        
-        # 2. 환경변수에서 access_token 가져오기
-        if not access_token:
-            access_token = os.getenv("CALENDAR_API_TOKEN")
-            if access_token:
-                print(f"✅ 환경변수에서 토큰 로드: {access_token[:10]}...")
-            else:
-                print("⚠️ 환경변수 CALENDAR_API_TOKEN을 찾을 수 없습니다.")
-        
+        access_token = changeable_access_token
+       
         return access_token
     
-    def get_user_id(self, state: Dict[str, Any]) -> str:
-        """사용자 ID를 가져옵니다."""
-        # 1. state에서 user_id 가져오기
-        user_id = state.get("user_id")
-        
-        # 2. 환경변수에서 user_id 가져오기
-        if not user_id:
-            user_id = os.getenv("CALENDAR_USER_ID")
-        
-        # 3. 기본값 사용 (API 문서에 맞는 사용자 ID)
-        if not user_id:
-            user_id = "4a728952-53a0-4abe-ae8c-0ff440d6585e"  # API 문서의 사용자 ID 하드코딩임
-            print("⚠️ 사용자 ID가 설정되지 않아 기본값을 사용합니다.")
-        
-        return user_id
+    # def get_user_id(self, state: Dict[str, Any]) -> str:
+    #     """사용자 ID를 가져옵니다."""
+    #     # 1. state에서 user_id 가져오기
+    #     user_id = "4a728952-53a0-4abe-ae8c-0ff440d6585e"
+    #     return user_id
     
     def create_headers(self, access_token: Optional[str]) -> Dict[str, str]:
         """API 요청 헤더를 생성합니다."""

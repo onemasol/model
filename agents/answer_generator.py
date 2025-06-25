@@ -8,6 +8,8 @@ import torch
 import httpx
 import json
 from datetime import datetime, timedelta
+from api.make_agents_log_payload import make_agent_logs_payload
+from api.send_agents_log import send_log_to_backend
 
 # NVIDIA GPU 최적화 설정
 def setup_optimal_device():
@@ -1347,5 +1349,28 @@ def answer_generator(state: Dict) -> Dict:
                 print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
     else:
         print(f"⚠️  캘린더 API 요청 조건 불충족 - calendar_type 또는 calendar_operation이 설정되지 않음")
+
+
+    # 캘린더 API 요청 처리 (calendar_type과 calendar_operation이 설정된 경우)
+    if state.get("calendar_type") and state.get("calendar_operation"):
+        try:
+            import asyncio
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            state = loop.run_until_complete(handle_calendar_api_request(state))
+            
+        except Exception as e:
+            print(f"❌ 캘린더 API 요청 처리 중 오류 발생: {str(e)}")
+
+    # ✅ 로그 전송 추가
+    try:
+        payload = make_agent_logs_payload(state)
+        send_log_to_backend(payload)
+    except Exception as e:
+        print(f"❌ 로그 전송 중 오류 발생: {str(e)}")
 
     return state

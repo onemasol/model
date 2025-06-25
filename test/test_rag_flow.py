@@ -41,14 +41,29 @@ def test_comprehensive_rag_flow():
             "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "calendar_needed", "answer_planner", "answer_generator"]
         },
         {
-            "description": "RAG 실패 후 웹서치 (최신 정보 필요)",
-            "input": "2024년 12월 기준으로 요식업 위생 관리 기준이 어떻게 변경되었나요?",
-            "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "websearch_agent", "websearch_critic"]
-        },
-        {
             "description": "RAG 재검색 필요 (모호한 질문)",
             "input": "음식점에서 발생할 수 있는 모든 위생 관련 문제와 해결방법을 알려주세요",
             "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "rag_retriever"]
+        },
+        {
+            "description": "RAG 재검색 필요 (너무 광범위한 질문)",
+            "input": "요식업 관련 모든 법규와 규정을 상세히 알려주세요",
+            "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "rag_retriever"]
+        },
+        {
+            "description": "RAG 재검색 필요 (구체적이지 않은 질문)",
+            "input": "세무 관련 모든 정보를 알려주세요",
+            "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "rag_retriever"]
+        },
+        {
+            "description": "RAG 재검색 필요 (복합적 질문)",
+            "input": "음식점 운영에 필요한 모든 허가, 세무, 위생 관련 절차와 규정을 알려주세요",
+            "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "rag_retriever"]
+        },
+        {
+            "description": "RAG 실패 후 웹서치 (최신 정보 필요)",
+            "input": "2024년 12월 기준으로 요식업 위생 관리 기준이 어떻게 변경되었나요?",
+            "expected_flow": ["task_router", "query_refiner", "rag_retriever", "rag_quality_critic", "websearch_agent", "websearch_critic"]
         },
         {
             "description": "웹서치 후 캘린더 작업 (구체적인 일정)",

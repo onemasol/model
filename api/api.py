@@ -7,7 +7,7 @@ from agents.answer_generator import answer_generator
 from agents.rag_retriever import rag_retriever
 from routers.rag_quality_critic import rag_quality_critic
 from routers.query_refiner import query_refiner
-
+    
 app = FastAPI(root_path="/agent")
 
 class Query(BaseModel):

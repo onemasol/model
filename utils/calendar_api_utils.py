@@ -43,7 +43,7 @@ def get_task_list_id_from_query(user_query: str, available_task_lists: List[Dict
 def prepare_calendar_event_request_body(event_data: Dict[str, Any], calendar_id: str = 'primary') -> Dict[str, Any]:
     """Google Calendar API 이벤트 생성/수정 요청 본문 준비"""
     body: Dict[str, Any] = {
-        'summary': event_data.get('summary', '새 일정'),
+        'title': event_data.get('title', '새 일정'),
         'start': event_data.get('start', {
             'dateTime': datetime.now().isoformat(),
             'timeZone': 'Asia/Seoul'

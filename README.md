@@ -1,7 +1,7 @@
 ## for model team setup
 
 1. cd model
-2. chmod +x setup.sh
+2. chmod +x setup.sh, .env setting, mongodb ip setting
 3. ./setup.sh
 3. ollama serve & ollama pull exaone3.5:7.8b : 약 10분 or 
     scp -r ~/.ollama/models root@vessl-onemasol:/root/.ollama/ : 3번 대신 선택 가능 약 17분

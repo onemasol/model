@@ -1,3 +1,4 @@
+# Import global session and access token variables from api2
 import sys
 import os
 import json
@@ -5,6 +6,8 @@ import time
 from datetime import datetime
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from api.api2 import _current_session_id, _current_access_token, _current_user_input, _current_ocr_result
 
 from routers.task_router import task_router
 from agents.calendar_agent import calendar_agent
@@ -55,8 +58,8 @@ def test_interactive_calendar_flow():
     print("   🎵 '내일 오후 4시에 피아노 연습 1시간 추가해줘'")
     
     while True:
-        # 사용자 입력 받기
-        user_input = input("\n📝 일정 등록 질문을 입력하세요: ").strip()
+        # Fetch latest user input and OCR result from global variables
+        user_input = merge_input(_current_user_input, _current_ocr_result)
         
         # 종료 조건 확인
         if user_input.lower() in ['quit', 'exit', 'q']:
@@ -79,8 +82,6 @@ def test_interactive_calendar_flow():
             "final_answer": None,
             "next_node": None,
             "agent_messages": [],
-            "router_messages": [],
-            "user_id": "542c2e7e-256a-4e15-abdb-f38310e94007"  # 실제 사용자 ID 추가
         }
         
         # 전체 시작 시간

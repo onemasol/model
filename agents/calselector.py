@@ -13,6 +13,7 @@ import re
 from difflib import SequenceMatcher
 import sys
 import requests
+from api.api2 import _current_session_id, _current_access_token, _current_user_input, _current_ocr_result
 
 # Google OAuth 유틸리티 import (프론트에서 건네받아야 함)
 try:
@@ -220,7 +221,7 @@ class CalendarAPIClient:
     
     def get_access_token(self, state: Dict[str, Any]) -> Optional[str]:
         """액세스 토큰을 가져옵니다."""
-        access_token = changeable_access_token
+        access_token = _current_access_token
        
         return access_token
     

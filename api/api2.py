@@ -6,6 +6,7 @@ import uuid
 import os
 from test.test_flow import test_interactive_calendar_flow
 from api.flow_runner import run_flow_interactive
+from datetime import datetime
 
 # Import your existing execution function (adjust import path as necessary)
 from api.getset import (
@@ -43,6 +44,8 @@ class MessageRequest(BaseModel):
 class AgentResponse(BaseModel):
     session_id: str
     response: str
+    timestamp: str
+    
 
 @app.post("/v1/chat/init", response_model=AgentResponse)
 def start_session(req: InitRequest):
@@ -58,7 +61,8 @@ def start_session(req: InitRequest):
     except Exception as e:
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    return AgentResponse(session_id=session_id, response=response_text)
+    timestamp = datetime.utcnow().isoformat()
+    return AgentResponse(session_id=session_id, response=response_text, timestamp=timestamp)
 
 @app.post("/v1/chat/message", response_model=AgentResponse)
 def session_messages(req: MessageRequest):
@@ -76,4 +80,5 @@ def session_messages(req: MessageRequest):
     except Exception as e:
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    return AgentResponse(session_id=req.session_id, response=response_text)
+    timestamp = datetime.utcnow().isoformat()
+    return AgentResponse(session_id=req.session_id, response=response_text, timestamp=timestamp)

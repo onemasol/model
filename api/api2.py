@@ -49,6 +49,8 @@ class AgentResponse(BaseModel):
 
 @app.post("/v1/chat/init", response_model=AgentResponse)
 def start_session(req: InitRequest):
+    timestamp = datetime.utcnow().isoformat()
+
     # Store incoming access token and generate new session ID
     session_id = str(uuid.uuid4())
     set_current_access_token(req.access_token)
@@ -61,11 +63,12 @@ def start_session(req: InitRequest):
     except Exception as e:
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    timestamp = datetime.utcnow().isoformat()
     return AgentResponse(session_id=session_id, response=response_text, timestamp=timestamp)
 
 @app.post("/v1/chat/message", response_model=AgentResponse)
 def session_messages(req: MessageRequest):
+    timestamp = datetime.utcnow().isoformat()
+
     # Validate session ID
     if get_current_session_id() != req.session_id:
         raise HTTPException(status_code=401, detail="Invalid session_id")
@@ -80,5 +83,4 @@ def session_messages(req: MessageRequest):
     except Exception as e:
         import traceback; traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    timestamp = datetime.utcnow().isoformat()
     return AgentResponse(session_id=req.session_id, response=response_text, timestamp=timestamp)

@@ -5,7 +5,7 @@ from embedding import KoSBERTEmbeddings
 class RAGSystem:
     def __init__(self):
         # MongoDB 접속 정보 설정
-        self.mongo_uri = "mongodb+srv://choi613504:zWqJV1Y4CVF5r4sj@cluster0.jzutl7b.mongodb.net/?retryWrites=true&w=majority&tls=true"
+        self.mongo_uri = "mongodb주소"
         self.mongo_client = MongoClient(self.mongo_uri)
         self.db = self.mongo_client["rag_project"]
         self.collection = self.db["documents"]
